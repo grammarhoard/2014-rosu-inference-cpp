@@ -16,14 +16,17 @@ using namespace std;
 class TrainingSet
 {
 public:
+    // Aliases
+    typedef set<pair<string, bool>> T;
+
     TrainingSet();
-    set<pair<string, bool>> get();
+    T get();
     void addSample(string sample, bool label);
     void addSampleFromFile(FILE * pFile, bool label);
     //TODO maybe implement addSampleFromDirectory
     ~TrainingSet();
 private:
-    set<pair<string, bool>> _data;
+    T _data;
     const static int _maxString;
 };
 

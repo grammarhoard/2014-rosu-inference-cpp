@@ -6,7 +6,7 @@ TrainingSet::TrainingSet()
 {
 }
 
-set<pair<string, bool>> TrainingSet::get()
+TrainingSet::T TrainingSet::get()
 {
     return this->_data;
 }

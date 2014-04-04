@@ -18,28 +18,25 @@ int main()
     // Add positive and negative samples
     TrainingSet trainingSet;
 
-    // populateTrainingSet1(trainingSet);
+    populateTrainingSet1(trainingSet);
     // populateTrainingSet2(trainingSet);
     // populateTrainingSet3(trainingSet);
-    populateTrainingSetFromFile(trainingSet, "thesis_DFA.sln");
+    // populateTrainingSetFromFile(trainingSet, "thesis_DFA.sln");
 
     // Build APTA
     Apta apta;
     apta.build(trainingSet, false);
+    apta.get(); //TODO print it
+    //TODO build graph visualization
 
     /*
-    // Build APTA
-    APTA = APTA::build(trainingSet.build(), false);
-    print("APTA 0: "); iprintln(APTA);
-    // GraphVis::build(APTA);
-
     // EXBAR Search
     exbarSearch();
     GraphVis::build(APTA);
 
     // Build DFA
     DFA DFA = DFA::build(APTA);
-    print("DFA 0: "); iprintln(DFA);
+    print("DFA 0: ");
     */
 
     cout << "0" << endl;
