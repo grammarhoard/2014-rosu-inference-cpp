@@ -33,7 +33,6 @@ public:
     static const string ACCEPTED;
     static const string REJECTED;
 
-    // Aliases
     typedef set<string> Q; // set of node ids
     typedef set<char> Z; // set of input symbols
     typedef string s; // root node's id
@@ -96,13 +95,10 @@ private:
     bool _useWhiteNodes = false;
 
     string _getUniqueNodeId();
-
-    //TODO rewrite this method
     void _addNode(bool isRed, string id, string label, string parentId, char edgeLabel);
 
     /*
      * Add path to the tree (it goes recursively until the sample is consumed)
      */
-    //TODO rewrite this method
     string _addPath(string nodeId, string sample, string terminalNodeLabel);
 };

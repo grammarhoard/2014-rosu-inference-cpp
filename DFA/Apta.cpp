@@ -32,7 +32,8 @@ void Apta::build(TrainingSet trainingSet, bool useWhiteNodes)
     this->_addNode(true, this->_rootId, "", "", '\0');
 
     for (pair<string, bool> sample : trainingSet.get()) {
-        this->_addPath(this->_rootId, sample.first, sample.second ? Apta::ACCEPTED : Apta::REJECTED);
+        this->_addPath(this->_rootId, sample.first,
+            sample.second ? Apta::ACCEPTED : Apta::REJECTED);
     }
 
     // Build _data
@@ -70,51 +71,54 @@ string Apta::_getUniqueNodeId()
 
 void Apta::_addNode(bool isRed, string id, string label, string parentId, char edgeLabel)
 {
-    //TODO rewrite this method
+    // Populate nodes map (red, blue or white)
     if (isRed) {
         this->_redNodes.insert({ id, label });
         if (label != "") {
             this->_redNodesLabels.push_back(label);
         }
+    } else if (this->_useWhiteNodes && parentId != this->_rootId) {
+        this->_whiteNodes.insert({ id, label });
     } else {
-        if ((this->_useWhiteNodes && parentId == this->_rootId) || !this->_useWhiteNodes) {
-            this->_blueNodes.insert({ id, label });
-        } else {
-            this->_whiteNodes.insert({ id, label });
-        }
+        this->_blueNodes.insert({ id, label });
     }
 
+    // Populate node edges map
     if (parentId != "") {
         // If there is a parent node id, there should also be a node edge
-        if (this->_nodeEdges.find(parentId) == this->_nodeEdges.end()) { // Not found
+        NodeEdges::iterator parentNodeEdges = this->_nodeEdges.find(parentId);
+        if (parentNodeEdges != this->_nodeEdges.end()) { // Found
+            parentNodeEdges->second.insert({ edgeLabel, id });
+        } else { // Not found
             NodeChildren nodeChildren;
             nodeChildren.insert({ edgeLabel, id });
             this->_nodeEdges.insert({ parentId, nodeChildren });
-        } else {
-            this->_nodeEdges.find(parentId)->second.insert({ edgeLabel, id });
         }
     }
 
-    if (this->_nodeEdges2.find(id) == this->_nodeEdges2.end()) { // Not found
+    // Populate node edges 2 map
+    NodeEdges::iterator nodeEdges2 = this->_nodeEdges2.find(id);
+    if (nodeEdges2 != this->_nodeEdges2.end()) { // Found
+        if (edgeLabel != '\0') {
+            nodeEdges2->second.insert({ edgeLabel, parentId });
+        }
+    } else { // Not found
         NodeChildren localNodeChildren;
         if (edgeLabel != '\0') {
             localNodeChildren.insert({ edgeLabel, parentId });
         }
         this->_nodeEdges2.insert({ id, localNodeChildren });
-    } else {
-        if (edgeLabel != '\0') {
-            this->_nodeEdges2.find(id)->second.insert({ edgeLabel, parentId });
-        }
     }
 }
 
 string Apta::_addPath(string nodeId, string sample, string terminalNodeLabel)
 {
-    //TODO rewrite this method
-    if (sample == "") { // Terminal Node
-        if (this->_blueNodes.find(nodeId) != this->_blueNodes.end()) { // Found
-            this->_blueNodes.find(nodeId)->second = terminalNodeLabel;
-        } else {
+    // Terminal Node
+    if (sample == "") {
+        Nodes::iterator blueNodes = this->_blueNodes.find(nodeId);
+        if (blueNodes != this->_blueNodes.end()) { // Found
+            blueNodes->second = terminalNodeLabel;
+        } else { // Not found
             this->_whiteNodes.find(nodeId)->second = terminalNodeLabel;
         }
         return nodeId;
@@ -124,56 +128,39 @@ string Apta::_addPath(string nodeId, string sample, string terminalNodeLabel)
     string sampleRest = sample.size() > 1 ? sample.substr(1) : "";
     string localNodeLabel = sampleRest.size() == 0 ? terminalNodeLabel : "";
 
-    string localNodeId;
-
-    bool createPath = false;
-
     // Check if the first character of the sample exists or not as path
-    if (this->_nodeEdges.find(nodeId) == this->_nodeEdges.end()) { // Not found
-        createPath = true;
-    } else { // Found
-        NodeChildren nodeChildren = this->_nodeEdges.find(nodeId)->second;
-        bool found = false;
+    NodeEdges::iterator nodeEdges = this->_nodeEdges.find(nodeId);
+    if (nodeEdges != this->_nodeEdges.end()) { // Found
+        NodeChildren nodeChildren = nodeEdges->second;
         for (pair<char, string> edgeLabelDestinationId : nodeChildren) {
-            if (edgeLabelDestinationId.first == sampleFirst) {
-                found = true;
+            if (edgeLabelDestinationId.first != sampleFirst) {
+                continue;
             }
-        }
-        if (!found) {
-            createPath = true;
+
+            // Update path
+            return this->_addPath(edgeLabelDestinationId.second, sampleRest, terminalNodeLabel);
         }
     }
 
-    if (createPath) {
-        localNodeId = this->_getUniqueNodeId();
-        this->_addNode(false, localNodeId, localNodeLabel, nodeId, sampleFirst);
+    // Create path
+    string localNodeId = this->_getUniqueNodeId();
+    this->_addNode(false, localNodeId, localNodeLabel, nodeId, sampleFirst);
 
-        this->_alphabet.insert(sampleFirst);
-    } else {
-        // Update path
-        // Get First Node Id By Label
-        NodeChildren nodeChildren = this->_nodeEdges.find(nodeId)->second;
-        for (pair<char, string> edgeLabelDestinationId : nodeChildren) {
-            if (edgeLabelDestinationId.first == sampleFirst) {
-                localNodeId = edgeLabelDestinationId.second;
-            }
-        }
-    }
-
+    this->_alphabet.insert(sampleFirst);
     return this->_addPath(localNodeId, sampleRest, terminalNodeLabel);
 }
 
 string Apta::A::d(string nodeId, char edgeLabel)
 {
-    string localNodeId;
     NodeChildren nodeChildren = this->_nodeEdges->find(nodeId)->second;
     for (pair<char, string> edgeLabelDestinationId : nodeChildren) {
-        if (edgeLabelDestinationId.first == edgeLabel) {
-            localNodeId = edgeLabelDestinationId.second;
+        if (edgeLabelDestinationId.first != edgeLabel) {
+            continue;
         }
+        return edgeLabelDestinationId.second;
     }
 
-    return localNodeId; //TODO treat this
+    return NULL;
 }
 
 Apta::~Apta()

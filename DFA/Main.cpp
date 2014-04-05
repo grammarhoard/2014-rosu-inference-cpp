@@ -2,16 +2,14 @@
 #include "Apta.h"
 // #include "Exbar.h"
 
-#include <iostream> // std::cin, std::cout
-#include <stdio.h>  // IO library
-#include <errno.h>  // std::strerror
+#include <iostream> // cin, cout, cerr
 
 using namespace std;
 
 void populateTrainingSet1(TrainingSet & trainingSet);
 void populateTrainingSet2(TrainingSet & trainingSet);
 void populateTrainingSet3(TrainingSet & trainingSet);
-void populateTrainingSetFromFile(TrainingSet & trainingSet, const char * fileName);
+void populateTrainingSetFromFile(TrainingSet & trainingSet);
 
 int main()
 {
@@ -21,12 +19,12 @@ int main()
     populateTrainingSet1(trainingSet);
     // populateTrainingSet2(trainingSet);
     // populateTrainingSet3(trainingSet);
-    // populateTrainingSetFromFile(trainingSet, "thesis_DFA.sln");
+    // populateTrainingSetFromFile(trainingSet);
 
     // Build APTA
     Apta apta;
     apta.build(trainingSet, false);
-    apta.get(); //TODO print it
+    apta.get();
     //TODO build graph visualization
 
     /*
@@ -76,17 +74,13 @@ void populateTrainingSet3(TrainingSet & trainingSet)
     trainingSet.addSample("b", false);
 }
 
-void populateTrainingSetFromFile(TrainingSet & trainingSet, const char * fileName)
+void populateTrainingSetFromFile(TrainingSet & trainingSet)
 {
-    FILE * pFile;
-    errno_t errorNo;
-    errorNo = fopen_s(&pFile, fileName, "r");
-    if (errorNo == 0) {
-        trainingSet.addSampleFromFile(pFile, true);
-        return;
+    try {
+        trainingSet.addSampleFromFile("sample\\sample2.php", true);
+        // trainingSet.addSampleFromFile("sample", true);
     }
-
-    char buffer[1024];
-    strerror_s(buffer, 1024, errorNo);
-    fprintf(stderr, "Error opening file '%s': %s\n", fileName, buffer);
+    catch (exception exception) {
+        cerr << exception.what() << endl;
+    }
 }

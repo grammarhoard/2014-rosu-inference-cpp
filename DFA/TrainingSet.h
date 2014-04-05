@@ -6,7 +6,10 @@
  */
 
 #include <stdio.h> // reading from files
-#include <utility> // std::pair, std::make_pair
+#include <utility> // pair, make_pair
+#include <Windows.h> // is directory
+#include <errno.h>  // strerror
+#include <exception>
 #include <string>
 #include <set>
 
@@ -16,14 +19,15 @@ using namespace std;
 class TrainingSet
 {
 public:
-    // Aliases
     typedef set<pair<string, bool>> T;
 
     TrainingSet();
     T get();
     void addSample(string sample, bool label);
-    void addSampleFromFile(FILE * pFile, bool label);
-    //TODO maybe implement addSampleFromDirectory
+    void addSampleFromFile(const string & fileName, bool label); // fileName can be a directory
+    void addSampleFromDirectory(const string & fileName, bool label); // fileName needs to be a directory
+    FILE * getFilePointer(const string & fileName);
+    bool isDirectory(const string & fileName);
     ~TrainingSet();
 private:
     T _data;
