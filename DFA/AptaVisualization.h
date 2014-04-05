@@ -10,7 +10,7 @@
 
 #include "Apta.h"
 
-using namespace std;
+using namespace ogdf;
 
 #pragma once
 class AptaVisualization
@@ -20,12 +20,14 @@ public:
     void build(Apta apta);
     ~AptaVisualization();
 private:
-    map<string, ogdf::node> _nodes; // id: node
+    map<string, node> _nodes; // id: node
 
-    void _createNodes(Apta apta, ogdf::Graph & graph, ogdf::GraphAttributes & graphAttributes);
-    void _createNode(ogdf::Graph & graph, ogdf::GraphAttributes & graphAttributes,
-        string id, string label, ogdf::Color color);
-    void _createEdges(Apta apta, ogdf::Graph & graph, ogdf::GraphAttributes & graphAttributes);
-    void _draw(ogdf::GraphAttributes graphAttributes);
+    //TODO maybe find a way to get rid of these parameters
+    //TODO it is not that easy due to "Access violation reading location" exception
+    void _createNodes(Apta apta, Graph & graph, GraphAttributes & graphAttributes);
+    void _createNode(Graph & graph, GraphAttributes & graphAttributes,
+        string id, string label, Color color);
+    void _createEdges(Apta apta, Graph & graph, GraphAttributes & graphAttributes);
+    void _draw(GraphAttributes graphAttributes);
 };
 
