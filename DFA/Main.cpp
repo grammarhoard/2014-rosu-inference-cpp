@@ -30,6 +30,7 @@ int main()
     //TODO build graph visualization
 
     /*
+    //TODO
     // EXBAR Search
     exbarSearch();
     GraphVis::build(APTA);

@@ -1,6 +1,6 @@
 #include "TrainingSet.h"
 
-const int TrainingSet::_maxString = 1024;
+const int TrainingSet::_MAXSTRING = 1024;
 
 TrainingSet::TrainingSet()
 {
@@ -18,9 +18,9 @@ void TrainingSet::addSample(string sample, bool label)
 
 void TrainingSet::addSampleFromFile(FILE * pFile, bool label)
 {
-    char buffer[_maxString];
+    char buffer[_MAXSTRING];
     while (!feof(pFile)) {
-        if (fgets(buffer, _maxString, pFile) == NULL) {
+        if (fgets(buffer, _MAXSTRING, pFile) == NULL) {
             break;
         }
         this->addSample(buffer, label);

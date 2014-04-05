@@ -1,12 +1,25 @@
 #include "Apta.h"
 
-Apta::Apta()
+const string Apta::ACCEPTED = "Accepted";
+const string Apta::REJECTED = "Rejected";
+
+Apta::A::A(const NodeEdges * nodeEdges)
+{
+    this->_nodeEdges = nodeEdges;
+}
+
+Apta::Apta() : _data(& _nodeEdges)
 {
 }
 
 Apta::A Apta::get()
 {
     return this->_data;
+}
+
+Apta::NodeEdges Apta::getNodeEdges()
+{
+    return this->_nodeEdges;
 }
 
 void Apta::build(TrainingSet trainingSet, bool useWhiteNodes)
@@ -16,10 +29,10 @@ void Apta::build(TrainingSet trainingSet, bool useWhiteNodes)
     }
 
     // Start with the root of APTA colored red
-    this->_addNode(true, this->_rootId, "", "", "");
+    this->_addNode(true, this->_rootId, "", "", '\0');
 
     for (pair<string, bool> sample : trainingSet.get()) {
-        this->_addPath(this->_rootId, sample.first, sample.second ? "Accepted" : "Rejected");
+        this->_addPath(this->_rootId, sample.first, sample.second ? Apta::ACCEPTED : Apta::REJECTED);
     }
 
     // Build _data
@@ -28,46 +41,41 @@ void Apta::build(TrainingSet trainingSet, bool useWhiteNodes)
     Fp acceptedNodes;
     Fm rejectedNodes;
     
-    for (pair<string, string> node : this->_redNodes) {
-        if (node.second == "Accepted") {
-            acceptedNodes.insert(node.first);
-        } else {
-            rejectedNodes.insert(node.first);
-        }
-        nodeIds.insert(node.first);
-    }
-    for (pair<string, string> node : this->_blueNodes) {
-        if (node.second == "Accepted") {
-            acceptedNodes.insert(node.first);
-        } else {
-            rejectedNodes.insert(node.first);
-        }
-        nodeIds.insert(node.first);
-    }
-    //TODO we don't need white nodes?
+    Nodes allNodes;
+    allNodes.insert(this->_redNodes.begin(), this->_redNodes.end());
+    allNodes.insert(this->_blueNodes.begin(), this->_blueNodes.end());
+    allNodes.insert(this->_whiteNodes.begin(), this->_whiteNodes.end());
 
-    this->_data = make_tuple(
-        nodeIds,
-        this->_alphabet,
-        // this->_transitionFunction("", ""),
-        this->_rootId,
-        acceptedNodes,
-        rejectedNodes
-    );
+    for (pair<string, string> node : allNodes) {
+        if (node.second == Apta::ACCEPTED) {
+            acceptedNodes.insert(node.first);
+        } else if (node.second == Apta::REJECTED) {
+            rejectedNodes.insert(node.first);
+        }
+        nodeIds.insert(node.first);
+    }
+
+    this->_data.Q  = nodeIds;
+    this->_data.Z  = this->_alphabet;
+    this->_data.s  = this->_rootId;
+    this->_data.Fp = acceptedNodes;
+    this->_data.Fm = rejectedNodes;
 }
 
 string Apta::_getUniqueNodeId()
 {
     this->_nodeIdAutoIncrement += 1;
-    return "Node-" + this->_nodeIdAutoIncrement;
+    return "Node-" + to_string(this->_nodeIdAutoIncrement);
 }
 
-void Apta::_addNode(bool isRed, string id, string label, string parentId, string edgeLabel)
+void Apta::_addNode(bool isRed, string id, string label, string parentId, char edgeLabel)
 {
     //TODO rewrite this method
     if (isRed) {
         this->_redNodes.insert({ id, label });
-        this->_redNodesLabels.push_back(label);
+        if (label != "") {
+            this->_redNodesLabels.push_back(label);
+        }
     } else {
         if ((this->_useWhiteNodes && parentId == this->_rootId) || !this->_useWhiteNodes) {
             this->_blueNodes.insert({ id, label });
@@ -87,24 +95,22 @@ void Apta::_addNode(bool isRed, string id, string label, string parentId, string
         }
     }
 
-    NodeChildren localNodeChildren;
-    pair<string, string> edgeLabelDestinationId;
-    if (edgeLabel != "") {
-        edgeLabelDestinationId = { edgeLabel, parentId };
-        localNodeChildren.insert(edgeLabelDestinationId);
-    }
-
     if (this->_nodeEdges2.find(id) == this->_nodeEdges2.end()) { // Not found
+        NodeChildren localNodeChildren;
+        if (edgeLabel != '\0') {
+            localNodeChildren.insert({ edgeLabel, parentId });
+        }
         this->_nodeEdges2.insert({ id, localNodeChildren });
     } else {
-        this->_nodeEdges2.find(id)->second.insert(edgeLabelDestinationId);
+        if (edgeLabel != '\0') {
+            this->_nodeEdges2.find(id)->second.insert({ edgeLabel, parentId });
+        }
     }
 }
 
 string Apta::_addPath(string nodeId, string sample, string terminalNodeLabel)
 {
     //TODO rewrite this method
-
     if (sample == "") { // Terminal Node
         if (this->_blueNodes.find(nodeId) != this->_blueNodes.end()) { // Found
             this->_blueNodes.find(nodeId)->second = terminalNodeLabel;
@@ -114,8 +120,8 @@ string Apta::_addPath(string nodeId, string sample, string terminalNodeLabel)
         return nodeId;
     }
 
+    char sampleFirst = sample[0];
     string sampleRest = sample.size() > 1 ? sample.substr(1) : "";
-    string sampleFirst = sample.substr(0, 1);
     string localNodeLabel = sampleRest.size() == 0 ? terminalNodeLabel : "";
 
     string localNodeId;
@@ -128,8 +134,8 @@ string Apta::_addPath(string nodeId, string sample, string terminalNodeLabel)
     } else { // Found
         NodeChildren nodeChildren = this->_nodeEdges.find(nodeId)->second;
         bool found = false;
-        for (pair<string, string> edgeLabelDestinationId : nodeChildren) {
-            if (edgeLabelDestinationId.second == sampleFirst) {
+        for (pair<char, string> edgeLabelDestinationId : nodeChildren) {
+            if (edgeLabelDestinationId.first == sampleFirst) {
                 found = true;
             }
         }
@@ -147,9 +153,9 @@ string Apta::_addPath(string nodeId, string sample, string terminalNodeLabel)
         // Update path
         // Get First Node Id By Label
         NodeChildren nodeChildren = this->_nodeEdges.find(nodeId)->second;
-        for (pair<string, string> edgeLabelDestinationId : nodeChildren) {
-            if (edgeLabelDestinationId.second == sampleFirst) {
-                localNodeId = edgeLabelDestinationId.first;
+        for (pair<char, string> edgeLabelDestinationId : nodeChildren) {
+            if (edgeLabelDestinationId.first == sampleFirst) {
+                localNodeId = edgeLabelDestinationId.second;
             }
         }
     }
@@ -157,12 +163,11 @@ string Apta::_addPath(string nodeId, string sample, string terminalNodeLabel)
     return this->_addPath(localNodeId, sampleRest, terminalNodeLabel);
 }
 
-//TODO tie this to d
-string &Apta::_transitionFunction(string nodeId, string edgeLabel)
+string Apta::A::d(string nodeId, char edgeLabel)
 {
     string localNodeId;
-    NodeChildren nodeChildren = this->_nodeEdges.find(nodeId)->second;
-    for (pair<string, string> edgeLabelDestinationId : nodeChildren) {
+    NodeChildren nodeChildren = this->_nodeEdges->find(nodeId)->second;
+    for (pair<char, string> edgeLabelDestinationId : nodeChildren) {
         if (edgeLabelDestinationId.first == edgeLabel) {
             localNodeId = edgeLabelDestinationId.second;
         }

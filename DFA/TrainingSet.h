@@ -5,10 +5,10 @@
  * The first two tuples are positive samples and the last two are negative
  */
 
-#include <utility>    // std::pair, std::make_pair
-#include <string>     // std::string
-#include <set>        // std::set
-#include <stdio.h>    // IO library
+#include <stdio.h> // reading from files
+#include <utility> // std::pair, std::make_pair
+#include <string>
+#include <set>
 
 using namespace std;
 
@@ -27,6 +27,5 @@ public:
     ~TrainingSet();
 private:
     T _data;
-    const static int _maxString;
+    static const int _MAXSTRING;
 };
-
