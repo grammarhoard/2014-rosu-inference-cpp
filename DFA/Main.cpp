@@ -1,5 +1,6 @@
 #include "TrainingSet.h"
 #include "Apta.h"
+#include "AptaVisualization.h"
 // #include "Exbar.h"
 
 #include <iostream> // cin, cout, cerr
@@ -24,8 +25,10 @@ int main()
     // Build APTA
     Apta apta;
     apta.build(trainingSet, false);
+
+    AptaVisualization aptaVisualization;
+    aptaVisualization.build(apta);
     apta.get();
-    //TODO build graph visualization
 
     /*
     //TODO

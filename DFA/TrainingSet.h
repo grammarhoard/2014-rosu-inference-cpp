@@ -7,6 +7,8 @@
 
 #include <stdio.h> // reading from files
 #include <utility> // pair, make_pair
+
+#define NOMINMAX // Take care of ancient macros
 #include <Windows.h> // is directory
 #include <errno.h>  // strerror
 #include <exception>

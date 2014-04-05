@@ -39,7 +39,7 @@ public:
     typedef set<string> Fp; // final nodes of strings in S+
     typedef set<string> Fm; // final nodes of strings in S-
 
-    typedef map<string, string> Nodes; // map(id, label)
+    typedef map<string, string> Nodes; // id: label
     typedef set<pair<char, string>> NodeChildren; // set[(edgeLabel, destinationId)]
     typedef map<string, NodeChildren> NodeEdges; // sourceId: NodeChildren
 
@@ -65,6 +65,9 @@ public:
 
     Apta();
     A get();
+    Nodes getRedNodes();
+    Nodes getBlueNodes();
+    Nodes getWhiteNodes();
     NodeEdges getNodeEdges();
 
     /*
@@ -83,7 +86,7 @@ private:
     NodeEdges _nodeEdges; // Source -> Destination (all colors) = used to get children
     NodeEdges _nodeEdges2; // Destination -> Source (all colors) = used to get parents
     Z _alphabet; // Set of input symbols
-    string _rootId = "root";
+    string _rootId = "R";
     int _nodeIdAutoIncrement = 0;
 
     /*

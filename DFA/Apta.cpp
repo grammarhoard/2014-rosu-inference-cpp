@@ -16,6 +16,20 @@ Apta::A Apta::get()
 {
     return this->_data;
 }
+Apta::Nodes Apta::getRedNodes()
+{
+    return this->_redNodes;
+}
+
+Apta::Nodes Apta::getBlueNodes()
+{
+    return this->_blueNodes;
+}
+
+Apta::Nodes Apta::getWhiteNodes()
+{
+    return this->_whiteNodes;
+}
 
 Apta::NodeEdges Apta::getNodeEdges()
 {
@@ -66,7 +80,7 @@ void Apta::build(TrainingSet trainingSet, bool useWhiteNodes)
 string Apta::_getUniqueNodeId()
 {
     this->_nodeIdAutoIncrement += 1;
-    return "Node-" + to_string(this->_nodeIdAutoIncrement);
+    return /*"Node-" + */to_string(this->_nodeIdAutoIncrement);
 }
 
 void Apta::_addNode(bool isRed, string id, string label, string parentId, char edgeLabel)
