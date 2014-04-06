@@ -2,6 +2,7 @@
 #include "Apta.h"
 #include "AptaVisualization.h"
 // #include "Exbar.h"
+#include "Dfa.h"
 
 #include <iostream> // cin, cout, cerr
 
@@ -35,11 +36,12 @@ int main()
     // EXBAR Search
     exbarSearch();
     GraphVis::build(APTA);
+    */
 
     // Build DFA
-    DFA DFA = DFA::build(APTA);
-    print("DFA 0: ");
-    */
+    Dfa dfa;
+    dfa.build(apta);
+    dfa.get();
 
     cout << "0" << endl;
     return 0;

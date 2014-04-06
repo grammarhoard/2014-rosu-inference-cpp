@@ -16,6 +16,7 @@ Apta::A Apta::get()
 {
     return this->_data;
 }
+
 Apta::Nodes Apta::getRedNodes()
 {
     return this->_redNodes;
