@@ -1,7 +1,7 @@
 #include "TrainingSet.h"
 #include "Apta.h"
 #include "AptaVisualization.h"
-// #include "Exbar.h"
+#include "Exbar.h"
 #include "Dfa.h"
 
 #include <iostream> // cin, cout, cerr
@@ -29,14 +29,11 @@ int main()
 
     AptaVisualization aptaVisualization;
     aptaVisualization.build(apta);
-    apta.get();
 
-    /*
-    //TODO
     // EXBAR Search
-    exbarSearch();
-    GraphVis::build(APTA);
-    */
+    Exbar exbar(apta);
+    exbar.search();
+    // aptaVisualization.build(apta);
 
     // Build DFA
     Dfa dfa;

@@ -39,6 +39,7 @@ public:
     typedef set<string> Fp; // final nodes of strings in S+
     typedef set<string> Fm; // final nodes of strings in S-
 
+    typedef list<string> NodeLabels; // list because it can have duplicates
     typedef map<string, string> Nodes; // id: label
     typedef set<pair<char, string>> NodeChildren; // set[(edgeLabel, destinationId)]
     typedef map<string, NodeChildren> NodeEdges; // sourceId: NodeChildren
@@ -68,7 +69,11 @@ public:
     Nodes getRedNodes();
     Nodes getBlueNodes();
     Nodes getWhiteNodes();
+
     NodeEdges getNodeEdges();
+    NodeEdges getNodeEdges2();
+
+    NodeLabels getRedNodesLabels();
 
     /*
      * Build APTA from Training Set starting with the Root Node
@@ -82,7 +87,7 @@ private:
     Nodes _whiteNodes; // Only used by EDSM algorithm
     Nodes _blueNodes;
     Nodes _redNodes;
-    list<string> _redNodesLabels; // Only used by Exbar algorithm (pickBlueNode)
+    NodeLabels _redNodesLabels; // Only used by Exbar algorithm (pickBlueNode)
     NodeEdges _nodeEdges; // Source -> Destination (all colors) = used to get children
     NodeEdges _nodeEdges2; // Destination -> Source (all colors) = used to get parents
     Z _alphabet; // Set of input symbols

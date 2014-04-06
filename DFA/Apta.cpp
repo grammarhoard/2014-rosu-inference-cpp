@@ -37,6 +37,16 @@ Apta::NodeEdges Apta::getNodeEdges()
     return this->_nodeEdges;
 }
 
+Apta::NodeEdges Apta::getNodeEdges2()
+{
+    return this->_nodeEdges2;
+}
+
+Apta::NodeLabels Apta::getRedNodesLabels()
+{
+    return this->_redNodesLabels;
+}
+
 void Apta::build(TrainingSet trainingSet, bool useWhiteNodes)
 {
     if (useWhiteNodes) {
