@@ -71,7 +71,12 @@ void AptaVisualization::_createEdges(Apta apta, Graph & graph, GraphAttributes &
     Apta::NodeEdges nodeEdges = apta.getNodeEdges();
 
     for (iterator2 = nodeEdges.begin(); iterator2 != nodeEdges.end(); ++iterator2) {
+        map<string, node>::iterator nodes = this->_nodes.find(iterator2->first);
+        if (nodes == this->_nodes.end()) {
+            continue;
+        }
         node node1 = this->_nodes.find(iterator2->first)->second;
+
         Apta::NodeChildren nodeChildren = iterator2->second;
         for (pair<char, string> edgeLabelDestinationId : nodeChildren) {
             node node2 = this->_nodes.find(edgeLabelDestinationId.second)->second;

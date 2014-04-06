@@ -33,7 +33,6 @@ int main()
     // EXBAR Search
     Exbar exbar(apta);
     exbar.search();
-    // aptaVisualization.build(apta);
 
     // Build DFA
     Dfa dfa;

@@ -3,6 +3,7 @@
  */
 
 #include "Apta.h"
+#include "AptaVisualization.h"
 
 #include <algorithm> // find element in list
 #include <assert.h>

@@ -17,32 +17,32 @@ Apta::A Apta::get()
     return this->_data;
 }
 
-Apta::Nodes Apta::getRedNodes()
+Apta::Nodes & Apta::getRedNodes()
 {
     return this->_redNodes;
 }
 
-Apta::Nodes Apta::getBlueNodes()
+Apta::Nodes & Apta::getBlueNodes()
 {
     return this->_blueNodes;
 }
 
-Apta::Nodes Apta::getWhiteNodes()
+Apta::Nodes & Apta::getWhiteNodes()
 {
     return this->_whiteNodes;
 }
 
-Apta::NodeEdges Apta::getNodeEdges()
+Apta::NodeEdges & Apta::getNodeEdges()
 {
     return this->_nodeEdges;
 }
 
-Apta::NodeEdges Apta::getNodeEdges2()
+Apta::NodeEdges & Apta::getNodeEdges2()
 {
     return this->_nodeEdges2;
 }
 
-Apta::NodeLabels Apta::getRedNodesLabels()
+Apta::NodeLabels & Apta::getRedNodesLabels()
 {
     return this->_redNodesLabels;
 }
@@ -99,9 +99,7 @@ void Apta::_addNode(bool isRed, string id, string label, string parentId, char e
     // Populate nodes map (red, blue or white)
     if (isRed) {
         this->_redNodes.insert({ id, label });
-        if (label != "") {
-            this->_redNodesLabels.push_back(label);
-        }
+        this->_redNodesLabels.push_back(label);
     } else if (this->_useWhiteNodes && parentId != this->_rootId) {
         this->_whiteNodes.insert({ id, label });
     } else {

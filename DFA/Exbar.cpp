@@ -22,12 +22,18 @@ void Exbar::search()
     // No blue nodes exist
     if (this->_apta.getBlueNodes().size() == 0) {
         // Found a solution
-        printf("Solution Found: No blue nodes exist!");
+        printf("Solution Found: No blue nodes exist!\n");
+
+        //TODO add the visualization to another file (to keep both)
+        AptaVisualization aptaVisualization;
+        aptaVisualization.build(this->_apta);
+
         return;
     }
 
     pair<string, string> pickedBlueNode = this->_pickBlueNode(); // (id, label)
-    printf("Blue node picked: id='%s', label=%s", pickedBlueNode.first, pickedBlueNode.second);
+    printf("Blue node picked: id='%s', label='%s'!\n",
+        pickedBlueNode.first.c_str(), pickedBlueNode.second.c_str());
 
     // Try to merge with all red nodes that have the same label
     for (Apta::Nodes::iterator iterator = redNodes.begin(); iterator != redNodes.end(); ++iterator) {
@@ -36,7 +42,8 @@ void Exbar::search()
         }
         if (this->_tryMerge(iterator->first, pickedBlueNode.first)) {
             // Red node is successfully merged with blue node
-            printf("R: '%s' merged successfully with B: '%s'!", iterator->first, pickedBlueNode.first);
+            printf("R: '%s' merged successfully with B: '%s'!\n",
+                iterator->first.c_str(), pickedBlueNode.first.c_str());
 
             // Continue to search
             this->search();
@@ -105,8 +112,8 @@ bool Exbar::_redNodeLabelExists(string nodeLabel)
 {
     Apta::NodeLabels redNodesLabels = this->_apta.getRedNodesLabels();
     if (std::find(redNodesLabels.begin(), redNodesLabels.end(), nodeLabel) !=
-        redNodesLabels.end()) { // Found
-        
+        redNodesLabels.end()
+    ) { // Found
         return true;
     }
     return false;
@@ -125,9 +132,11 @@ size_t Exbar::_getNumberRedNodesByLabel(string nodeLabel)
 
 bool Exbar::_tryMerge(string redNodeId, string blueNodeId)
 {
-    printf("Trying to merge R: %s with B: %s!", redNodeId, blueNodeId);
+    printf("Trying to merge red node: %s with blue node: %s!\n",
+        redNodeId.c_str(), blueNodeId.c_str());
 
-    Apta::NodeEdges nodeEdges = this->_apta.getNodeEdges();
+    Apta::NodeEdges & nodeEdges = this->_apta.getNodeEdges();
+    Apta::NodeEdges & nodeEdges2 = this->_apta.getNodeEdges2();
 
     // If the nodes have transitions on a common symbol
     //     that lead to nodes which are not equivalent, merge is not allowed
@@ -135,17 +144,14 @@ bool Exbar::_tryMerge(string redNodeId, string blueNodeId)
     Apta::NodeEdges::iterator blueNode = nodeEdges.find(blueNodeId);
     if (redNode != nodeEdges.end() &&  blueNode != nodeEdges.end()) { // Both found
         // Both nodes have children
-        Apta::NodeChildren redNodesChildren = redNode->second;
-        Apta::NodeChildren blueNodesChildren = blueNode->second;
-
-        for (pair<char, string> redNodeChild : redNodesChildren) {
-            for (pair<char, string> blueNodeChild : blueNodesChildren) {
+        for (pair<char, string> redNodeChild : redNode->second) {
+            for (pair<char, string> blueNodeChild : blueNode->second) {
                 if (redNodeChild.first == blueNodeChild.first &&
                     this->_getLabelByNodeId(redNodeChild.second) !=
                     this->_getLabelByNodeId(blueNodeChild.second)
                 ) {
                     printf("Merge failed! the nodes have children on a common %s",
-                        "symbol that lead to nodes which are not equivalent!");
+                        "symbol that lead to nodes which are not equivalent!\n");
                     return false;
                 }
             }
@@ -153,60 +159,66 @@ bool Exbar::_tryMerge(string redNodeId, string blueNodeId)
     }
 
     // Get the nodes pointing to the blue node and make them point the red node
-    Apta::NodeEdges nodeEdges2 = this->_apta.getNodeEdges2();
-    Apta::NodeEdges::iterator blueNodesParents = nodeEdges2.find(blueNodeId);
-    if (blueNodesParents == nodeEdges2.end()) { // Not found
+    Apta::NodeEdges::iterator & blueNodesParentsIterator = nodeEdges2.find(blueNodeId);
+    if (blueNodesParentsIterator == nodeEdges2.end()) { // Not found
         assert(false && "This should never happen! Blue node has no parents!");
     }
 
-    for (pair<char, string> blueNodesParent : blueNodesParents->second) {
-        Apta::NodeChildren localNodeChildren = nodeEdges.find(blueNodesParent.second)->second;
-        Apta::NodeChildren::iterator localNodeChild = localNodeChildren.find({ blueNodesParent.first, blueNodeId});
+    Apta::NodeChildren & blueNodesParents = blueNodesParentsIterator->second;
+    Apta::NodeChildren::iterator blueNodeParent;
+    for (blueNodeParent = blueNodesParents.begin(); blueNodeParent != blueNodesParents.end();) {
+        Apta::NodeChildren & localNodeChildren = nodeEdges.find(blueNodeParent->second)->second;
+        Apta::NodeChildren::iterator & localNodeChild =
+            localNodeChildren.find({ blueNodeParent->first, blueNodeId });
         localNodeChildren.erase(localNodeChild);
-        localNodeChildren.insert({ blueNodesParent.first, redNodeId });
+        localNodeChildren.insert({ blueNodeParent->first, redNodeId });
 
-        Apta::NodeChildren localNodeParents = nodeEdges2.find(redNodeId)->second;
-        localNodeParents.insert(blueNodesParent);
-        blueNodesParents->second.erase(blueNodesParent); //TODO not sure about this one
+        nodeEdges2.find(redNodeId)->second.insert({ blueNodeParent->first, blueNodeParent->second });
+        blueNodesParents.erase(blueNodeParent++);
     }
 
     // Get the blue nodes' children and make them children of the red node
-    Apta::NodeEdges::iterator blueNodesChildren = nodeEdges.find(blueNodeId);
-    if (blueNodesChildren != nodeEdges.end()) { // Found
-        for (pair<char, string> blueNodesChild : blueNodesChildren->second) {
-            Apta::NodeEdges::iterator redNodesChildren = nodeEdges.find(redNodeId);
-            Apta::NodeChildren localRedNodesChildren;
-            localRedNodesChildren.insert(blueNodesChild);
-            if (redNodesChildren == nodeEdges.end()) { // Not found
-                nodeEdges.insert({ redNodeId, localRedNodesChildren });
-            } else {
-                redNodesChildren->second.insert(blueNodesChild);
-            }
-            blueNode->second.erase(blueNodesChild);
+    Apta::NodeEdges::iterator & blueNodesChildrenIterator = nodeEdges.find(blueNodeId);
+    if (blueNodesChildrenIterator != nodeEdges.end()) { // Found
 
-            Apta::NodeEdges::iterator localBlueNodesParent = nodeEdges2.find(blueNodesChild.second);
-            localBlueNodesParent->second.insert({ blueNodesChild.first, redNodeId });
-            localBlueNodesParent->second.erase({ blueNodesChild.first, blueNodeId });
+        Apta::NodeChildren & blueNodesChildren = blueNodesChildrenIterator->second;
+        Apta::NodeChildren::iterator blueNodesChild;
+        for (blueNodesChild = blueNodesChildren.begin(); blueNodesChild != blueNodesChildren.end();) {
+            Apta::NodeEdges::iterator & redNodesChildren = nodeEdges.find(redNodeId);
+            Apta::NodeChildren localRedNodesChildren;
+            localRedNodesChildren.insert({ blueNodesChild->first, blueNodesChild->second });
+
+            if (redNodesChildren != nodeEdges.end()) { // Found
+                redNodesChildren->second.insert({ blueNodesChild->first, blueNodesChild->second });
+            } else {
+                nodeEdges.insert({ redNodeId, localRedNodesChildren });
+            }
+
+            Apta::NodeChildren & localBlueNodesParent = nodeEdges2.find(blueNodesChild->second)->second;
+            localBlueNodesParent.insert({ blueNodesChild->first, redNodeId });
+            localBlueNodesParent.erase({ blueNodesChild->first, blueNodeId });
+
+            blueNodesChildren.erase(blueNodesChild++);
         }
     }
 
     // Remove blue node
     this->_apta.getBlueNodes().erase(blueNodeId);
-
     return true;
 }
 
 void Exbar::_colorNodeRed(string nodeId)
 {
-    Apta::Nodes blueNodes = this->_apta.getBlueNodes();
-    Apta::Nodes::iterator blueNode = blueNodes.find(nodeId);
-    if (blueNode == blueNodes.end()) { // Not found
+    Apta::Nodes::iterator blueNode = this->_apta.getBlueNodes().find(nodeId);
+    if (blueNode == this->_apta.getBlueNodes().end()) { // Not found
         assert(false && "This should never happen! Blue node does not exist!");
     }
 
     this->_apta.getRedNodes().insert({ blueNode->first, blueNode->second });
     this->_apta.getRedNodesLabels().push_back(blueNode->second);
-    blueNodes.erase(blueNode);
+    this->_apta.getBlueNodes().erase(blueNode);
+
+    printf("Blue node '%s' has been promoted to red!\n", nodeId.c_str());
 
     this->_maxRed++;
 }

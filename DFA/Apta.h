@@ -66,14 +66,13 @@ public:
 
     Apta();
     A get();
-    Nodes getRedNodes();
-    Nodes getBlueNodes();
-    Nodes getWhiteNodes();
 
-    NodeEdges getNodeEdges();
-    NodeEdges getNodeEdges2();
-
-    NodeLabels getRedNodesLabels();
+    Nodes & getRedNodes();
+    Nodes & getBlueNodes();
+    Nodes & getWhiteNodes();
+    NodeEdges & getNodeEdges();
+    NodeEdges & getNodeEdges2();
+    NodeLabels & getRedNodesLabels();
 
     /*
      * Build APTA from Training Set starting with the Root Node
