@@ -15,4 +15,20 @@ public:
     ~Edsm();
 private:
     int _minusInfinity;
+
+    /*
+     * Build merge score as the number of strings that end in the same state
+     *    if that merge is done.
+     * - conflicting labels: -infinity
+     * - no labels: 0
+     * - otherwise: number of labels - 1
+     */
+    int _buildMergeScore(string redNodeId, string blueNodeId);
+
+    /*
+    * Promote a blue node to red
+    */
+    void _colorNodeRed(string nodeId);
+
+    void _merge(string redNodeId, string blueNodeId);
 };

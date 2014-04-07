@@ -17,5 +17,15 @@ protected:
     size_t _visualizationId = 0;
 
     void _buildVisualization(string outputFileName);
+
+    /*
+     * Get the nodes pointing to the blue node and make them point the red node
+     */
+    void _switchParents(string blueNodeId, string redNodeId);
+
+    /*
+     * Get the blue nodes' children and make them children of the red node
+     */
+    void _switchChildren(string blueNodeId, string redNodeId, bool colorBlue);
 };
 

@@ -13,6 +13,7 @@ void populateTrainingSet1(TrainingSet & trainingSet);
 void populateTrainingSet2(TrainingSet & trainingSet);
 void populateTrainingSet3(TrainingSet & trainingSet);
 void populateTrainingSetFromFile(TrainingSet & trainingSet);
+Apta buildApta(TrainingSet & trainingSet, bool useWhiteNodes, string aptaVisualizationOutputName);
 
 int main()
 {
@@ -27,15 +28,17 @@ int main()
 
     // Build APTA
     Apta apta;
-    apta.build(trainingSet, false);
+    string aptaVisualizationOutputName;
 
-    string aptaVisualizationOutputName = visualizationPrefix + "Apta.svg";
-    AptaVisualization aptaVisualization(aptaVisualizationOutputName.c_str());
-    aptaVisualization.build(apta);
+    aptaVisualizationOutputName = visualizationPrefix + "Exbar_Apta.svg";
+    apta = buildApta(trainingSet, false, aptaVisualizationOutputName);
 
-    // EXBAR Search
     Exbar exbar(apta, visualizationPrefix + "Exbar_");
     exbar.search();
+
+    // Build APTA again because now we also have white nodes
+    aptaVisualizationOutputName = visualizationPrefix + "Edsm_Apta.svg";
+    apta = buildApta(trainingSet, true, aptaVisualizationOutputName);
 
     Edsm edsm(apta, visualizationPrefix + "Edsm_");
     edsm.search();
@@ -90,4 +93,15 @@ void populateTrainingSetFromFile(TrainingSet & trainingSet)
     catch (exception exception) {
         cerr << exception.what() << endl;
     }
+}
+
+Apta buildApta(TrainingSet & trainingSet, bool useWhiteNodes, string aptaVisualizationOutputName)
+{
+    Apta apta;
+    apta.build(trainingSet, useWhiteNodes);
+
+    AptaVisualization aptaVisualization(aptaVisualizationOutputName.c_str());
+    aptaVisualization.build(apta);
+
+    return apta;
 }

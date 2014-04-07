@@ -104,7 +104,7 @@ pair<string, string> Exbar::_pickBlueNode() // (id, label)
 
 bool Exbar::_tryMerge(string redNodeId, string blueNodeId)
 {
-    printf("Trying to merge red node: %s with blue node: %s!\n",
+    printf("Trying to merge red node '%s' with blue node '%s'!\n",
         redNodeId.c_str(), blueNodeId.c_str());
 
     Apta::NodeEdges & nodeEdges = this->_apta.getNodeEdges();
@@ -131,48 +131,10 @@ bool Exbar::_tryMerge(string redNodeId, string blueNodeId)
     }
 
     // Get the nodes pointing to the blue node and make them point the red node
-    Apta::NodeEdges::iterator & blueNodesParentsIterator = nodeEdges2.find(blueNodeId);
-    if (blueNodesParentsIterator == nodeEdges2.end()) { // Not found
-        assert(false && "This should never happen! Blue node has no parents!");
-    }
-
-    Apta::NodeChildren & blueNodesParents = blueNodesParentsIterator->second;
-    Apta::NodeChildren::iterator blueNodeParent;
-    for (blueNodeParent = blueNodesParents.begin(); blueNodeParent != blueNodesParents.end();) {
-        Apta::NodeChildren & localNodeChildren = nodeEdges.find(blueNodeParent->second)->second;
-        Apta::NodeChildren::iterator & localNodeChild =
-            localNodeChildren.find({ blueNodeParent->first, blueNodeId });
-        localNodeChildren.erase(localNodeChild);
-        localNodeChildren.insert({ blueNodeParent->first, redNodeId });
-
-        nodeEdges2.find(redNodeId)->second.insert({ blueNodeParent->first, blueNodeParent->second });
-        blueNodesParents.erase(blueNodeParent++);
-    }
+    this->_switchParents(blueNodeId, redNodeId);
 
     // Get the blue nodes' children and make them children of the red node
-    Apta::NodeEdges::iterator & blueNodesChildrenIterator = nodeEdges.find(blueNodeId);
-    if (blueNodesChildrenIterator != nodeEdges.end()) { // Found
-
-        Apta::NodeChildren & blueNodesChildren = blueNodesChildrenIterator->second;
-        Apta::NodeChildren::iterator blueNodesChild;
-        for (blueNodesChild = blueNodesChildren.begin(); blueNodesChild != blueNodesChildren.end();) {
-            Apta::NodeEdges::iterator & redNodesChildren = nodeEdges.find(redNodeId);
-            Apta::NodeChildren localRedNodesChildren;
-            localRedNodesChildren.insert({ blueNodesChild->first, blueNodesChild->second });
-
-            if (redNodesChildren != nodeEdges.end()) { // Found
-                redNodesChildren->second.insert({ blueNodesChild->first, blueNodesChild->second });
-            } else {
-                nodeEdges.insert({ redNodeId, localRedNodesChildren });
-            }
-
-            Apta::NodeChildren & localBlueNodesParent = nodeEdges2.find(blueNodesChild->second)->second;
-            localBlueNodesParent.insert({ blueNodesChild->first, redNodeId });
-            localBlueNodesParent.erase({ blueNodesChild->first, blueNodeId });
-
-            blueNodesChildren.erase(blueNodesChild++);
-        }
-    }
+    this->_switchChildren(blueNodeId, redNodeId, false);
 
     // Remove blue node
     this->_apta.getBlueNodes().erase(blueNodeId);

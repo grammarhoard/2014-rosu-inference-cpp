@@ -41,8 +41,9 @@ public:
     typedef set<string> Fp; // final nodes of strings in S+
     typedef set<string> Fm; // final nodes of strings in S-
 
-    typedef list<string> NodeLabels; // list because it can have duplicates
     typedef map<string, string> Nodes; // id: label
+    typedef list<string> NodeLabels; // list because it can have duplicates
+
     typedef set<pair<char, string>> NodeChildren; // set[(edgeLabel, destinationId)]
     typedef map<string, NodeChildren> NodeEdges; // sourceId: NodeChildren
 
