@@ -22,7 +22,9 @@
 #include <tuple>
 #include <map>
 #include <list>
-#include <utility> // std::pair
+#include <utility> // pair
+#include <algorithm> // find element in list
+#include <assert.h>
 
 using namespace std;
 
@@ -78,6 +80,11 @@ public:
      * Build APTA from Training Set starting with the Root Node
      */
     void build(TrainingSet trainingSet, bool useWhiteNodes);
+
+    string getLabelByNodeId(string nodeId);
+    void colorNodeRed(string nodeId);
+    bool redNodeLabelExists(string nodeLabel);
+    size_t getNumberRedNodesByLabel(string nodeLabel);
 
     ~Apta();
 private:

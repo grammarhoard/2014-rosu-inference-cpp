@@ -3,10 +3,16 @@
  * Algorithm for DFA learning from given training data
  */
 
+#include "AptaBasedAlgorithm.h"
+#include <limits> // numeric_limits
+
 #pragma once
-class Edsm
+class Edsm: public AptaBasedAlgorithm
 {
 public:
-    Edsm();
+    Edsm(Apta apta, string visualizationPrefix);
+    void search();
     ~Edsm();
+private:
+    int _minusInfinity;
 };

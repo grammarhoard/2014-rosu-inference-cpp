@@ -16,10 +16,11 @@ using namespace ogdf;
 class AptaVisualization
 {
 public:
-    AptaVisualization();
+    AptaVisualization(const char * outputFileName);
     void build(Apta apta);
     ~AptaVisualization();
 private:
+    const char * _outputFileName;
     map<string, node> _nodes; // id: node
 
     //TODO maybe find a way to get rid of these parameters

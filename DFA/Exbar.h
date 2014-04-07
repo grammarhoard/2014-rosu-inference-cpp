@@ -2,21 +2,17 @@
  * Algorithm for the exact inference of minimal DFA
  */
 
-#include "Apta.h"
-#include "AptaVisualization.h"
-
-#include <algorithm> // find element in list
+#include "AptaBasedAlgorithm.h"
 #include <assert.h>
 
 #pragma once
-class Exbar
+class Exbar: public AptaBasedAlgorithm
 {
 public:
-    Exbar(Apta apta);
+    Exbar(Apta apta, string visualizationPrefix);
     void search();
     ~Exbar();
 private:
-    Apta _apta;
     size_t _noPossibleMerges = 0; // Current number of possible merges
     size_t _maxRed = 0; // Limits the number of searches to the number of red nodes
 
@@ -39,8 +35,4 @@ private:
      * Promote a blue node to red
      */
     void _colorNodeRed(string nodeId);
-
-    bool _redNodeLabelExists(string nodeLabel);
-    size_t _getNumberRedNodesByLabel(string nodeLabel);
-    string _getLabelByNodeId(string nodeId);
 };

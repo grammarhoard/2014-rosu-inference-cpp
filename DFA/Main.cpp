@@ -2,6 +2,7 @@
 #include "Apta.h"
 #include "AptaVisualization.h"
 #include "Exbar.h"
+#include "Edsm.h"
 #include "Dfa.h"
 
 #include <iostream> // cin, cout, cerr
@@ -18,6 +19,7 @@ int main()
     // Add positive and negative samples
     TrainingSet trainingSet;
 
+    string visualizationPrefix = "TS1\\";
     populateTrainingSet1(trainingSet);
     // populateTrainingSet2(trainingSet);
     // populateTrainingSet3(trainingSet);
@@ -27,12 +29,16 @@ int main()
     Apta apta;
     apta.build(trainingSet, false);
 
-    AptaVisualization aptaVisualization;
+    string aptaVisualizationOutputName = visualizationPrefix + "Apta.svg";
+    AptaVisualization aptaVisualization(aptaVisualizationOutputName.c_str());
     aptaVisualization.build(apta);
 
     // EXBAR Search
-    Exbar exbar(apta);
+    Exbar exbar(apta, visualizationPrefix + "Exbar_");
     exbar.search();
+
+    Edsm edsm(apta, visualizationPrefix + "Edsm_");
+    edsm.search();
 
     // Build DFA
     Dfa dfa;

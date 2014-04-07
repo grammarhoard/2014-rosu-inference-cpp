@@ -88,6 +88,60 @@ void Apta::build(TrainingSet trainingSet, bool useWhiteNodes)
     this->_data.Fm = rejectedNodes;
 }
 
+string Apta::getLabelByNodeId(string nodeId)
+{
+    Apta::Nodes::iterator redNode = this->_redNodes.find(nodeId);
+    if (redNode != this->_redNodes.end()) { // Found
+        return redNode->second;
+    }
+
+    Apta::Nodes::iterator blueNode = this->_blueNodes.find(nodeId);
+    if (blueNode != this->_blueNodes.end()) { // Found
+        return blueNode->second;
+    }
+
+    Apta::Nodes::iterator whiteNode = this->_whiteNodes.find(nodeId);
+    if (whiteNode != this->_whiteNodes.end()) { // Found
+        return whiteNode->second;
+    }
+
+    assert(false && "This should never happen! Node not found!");
+    return NULL;
+}
+
+void Apta::colorNodeRed(string nodeId)
+{
+    Apta::Nodes::iterator blueNode = this->_blueNodes.find(nodeId);
+    if (blueNode == this->_blueNodes.end()) { // Not found
+        assert(false && "This should never happen! Blue node does not exist!");
+    }
+
+    this->_redNodes.insert({ blueNode->first, blueNode->second });
+    this->_redNodesLabels.push_back(blueNode->second);
+    this->_blueNodes.erase(blueNode);
+}
+
+bool Apta::redNodeLabelExists(string nodeLabel)
+{
+    if (std::find(this->_redNodesLabels.begin(), this->_redNodesLabels.end(), nodeLabel) !=
+        this->_redNodesLabels.end()) { // Found
+
+        return true;
+    }
+    return false;
+}
+
+size_t Apta::getNumberRedNodesByLabel(string nodeLabel)
+{
+    size_t result = 0;
+    for (string localNodeLabel : this->_redNodesLabels) {
+        if (localNodeLabel == nodeLabel) {
+            result++;
+        }
+    }
+    return result;
+}
+
 string Apta::_getUniqueNodeId()
 {
     this->_nodeIdAutoIncrement += 1;
