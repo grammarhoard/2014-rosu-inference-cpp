@@ -22,6 +22,10 @@ public:
 private:
     const char * _outputFileName;
     map<string, node> _nodes; // id: node
+    map<node, edge> _nodesReferencingThemselves; // used to redraw some edges
+
+    double _width;
+    double _height;
 
     //TODO maybe find a way to get rid of these parameters
     //TODO it is not that easy due to "Access violation reading location" exception
@@ -29,6 +33,8 @@ private:
     void _createNode(Graph & graph, GraphAttributes & graphAttributes,
         string id, string label, Color color);
     void _createEdges(Apta apta, Graph & graph, GraphAttributes & graphAttributes);
-    void _draw(GraphAttributes graphAttributes);
+    void _draw(GraphAttributes & graphAttributes);
+
+    void _drawEdgesForNodesReferencingThemselves(GraphAttributes & graphAttributes);
 };
 

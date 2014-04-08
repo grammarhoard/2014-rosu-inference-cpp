@@ -3,6 +3,8 @@
 AptaVisualization::AptaVisualization(const char * outputFileName)
 {
     this->_outputFileName = outputFileName;
+    this->_width = 20;
+    this->_height = 20;
 }
 
 void AptaVisualization::build(Apta apta)
@@ -19,6 +21,9 @@ void AptaVisualization::build(Apta apta)
         GraphAttributes::edgeType |
         GraphAttributes::edgeArrow
     );
+    graphAttributes.setDirected(true);
+    graphAttributes.setAllWidth(this->_width);
+    graphAttributes.setAllHeight(this->_height);
 
     this->_createNodes(apta, graph, graphAttributes);
     this->_createEdges(apta, graph, graphAttributes);
@@ -74,25 +79,31 @@ void AptaVisualization::_createEdges(Apta apta, Graph & graph, GraphAttributes &
     Apta::NodeEdges nodeEdges = apta.getNodeEdges();
 
     for (iterator2 = nodeEdges.begin(); iterator2 != nodeEdges.end(); ++iterator2) {
-        map<string, node>::iterator nodes = this->_nodes.find(iterator2->first);
+        string node1Id = iterator2->first;
+        map<string, node>::iterator nodes = this->_nodes.find(node1Id);
         if (nodes == this->_nodes.end()) {
             continue;
         }
-        node node1 = this->_nodes.find(iterator2->first)->second;
+        node node1 = nodes->second;
 
         Apta::NodeChildren nodeChildren = iterator2->second;
         for (pair<char, string> edgeLabelDestinationId : nodeChildren) {
-            node node2 = this->_nodes.find(edgeLabelDestinationId.second)->second;
+            string node2Id = edgeLabelDestinationId.second;
+            node node2 = this->_nodes.find(node2Id)->second;
             edge edge = graph.newEdge(node1, node2);
             graphAttributes.bends(edge);
             string label(&edgeLabelDestinationId.first, 1);
             graphAttributes.label(edge) = label;
             graphAttributes.strokeColor(edge) = Color("#CCCCCC");
+
+            if (node1Id == node2Id) {
+                this->_nodesReferencingThemselves.insert({ node1, edge });
+            }
         }
     }
 }
 
-void AptaVisualization::_draw(GraphAttributes graphAttributes)
+void AptaVisualization::_draw(GraphAttributes & graphAttributes)
 {
     // Compute a hierarchical drawing of the graph (using SugiyamaLayout)
     SugiyamaLayout sugiyamaLayout;
@@ -104,7 +115,24 @@ void AptaVisualization::_draw(GraphAttributes graphAttributes)
     sugiyamaLayout.setLayout(optimalHierarchyLayout);
     sugiyamaLayout.call(graphAttributes);
 
+    this->_drawEdgesForNodesReferencingThemselves(graphAttributes);
+
     GraphIO::drawSVG(graphAttributes, this->_outputFileName);
+}
+
+void AptaVisualization::_drawEdgesForNodesReferencingThemselves(GraphAttributes & graphAttributes)
+{
+    map<node, edge>::iterator nodes;
+    for (nodes = this->_nodesReferencingThemselves.begin();
+        nodes != this->_nodesReferencingThemselves.end(); ++nodes
+    ) {
+        double x = graphAttributes.x(nodes->first);
+        double y = graphAttributes.y(nodes->first);
+
+        DPolyline &p = graphAttributes.bends(nodes->second);
+        p.pushBack(DPoint(x + this->_width - 5, y + this->_height - 10));
+        p.pushBack(DPoint(x + this->_width - 10, y + this->_height));
+    }
 }
 
 AptaVisualization::~AptaVisualization()
