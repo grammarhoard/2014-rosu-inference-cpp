@@ -3,6 +3,9 @@
 #include "easylogging++.h"
 _INITIALIZE_EASYLOGGINGPP
 
+
+using namespace std;
+
 int main()
 {
     el::Configurations defaultConf;
@@ -15,7 +18,7 @@ int main()
     el::Loggers::reconfigureLogger("default", defaultConf);
 
     MainHelper mainHelper;
-    // string visualizationPrefix = "D:\\Master Thesis\\Documentation\\Thesis LaTeX\\Pictures\\DFA\\";
+    string visualizationPrefix = "D:\\Master Thesis\\Documentation\\Thesis LaTeX\\Pictures\\DFA\\";
     // mainHelper.runSimpleTrainingSet(visualizationPrefix);
     // mainHelper.runSimpleTrainingSet(visualizationPrefix, 2);
     // mainHelper.runSimpleTrainingSet(visualizationPrefix, 3);

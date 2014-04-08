@@ -38,8 +38,7 @@ void Edsm::search()
         // 2. If there exists a blue node that cannot be merged
         //     with any red node, promote it to red and go to step 1
         if (localMaxMergeScore == this->_minusInfinity) {
-            LOG(DEBUG) << "Blue node '" << blueNode->first
-                << "' cannot be merged with any red node, so it is promoted to red";
+            LOG(DEBUG) << "Blue node '" << blueNode->first << "' cannot be merged with any red node, so it is promoted to red";
 
             this->_colorNodeRed(blueNode->first);
             this->search();
@@ -54,8 +53,7 @@ void Edsm::search()
             string redNodeId = get<0>(merge);
             string blueNodeId = get<1>(merge);
 
-            LOG(DEBUG) << "Merging red node '" << redNodeId
-                << "' with blue node '" << blueNodeId << "'";
+            LOG(DEBUG) << "Merging red node '" << redNodeId << "' with blue node '" << blueNodeId << "'";
 
             this->_merge(redNodeId, blueNodeId);
             this->search();
@@ -73,7 +71,7 @@ int Edsm::_buildMergeScore(string redNodeId, string blueNodeId)
     }
 
     int numberOfLabels = 0;
-    Apta::NodeEdges nodeEdges = this->_apta.getNodeEdges();
+    Apta::NodeEdges & nodeEdges = this->_apta.getNodeEdges();
 
     // Check determination rule (the children of equivalent nodes must be equivalent)
     Apta::NodeEdges::iterator redNode = nodeEdges.find(redNodeId);
@@ -111,7 +109,7 @@ void Edsm::_colorNodeRed(string nodeId)
     }
 
     // Color its primary children to blue
-    Apta::NodeEdges nodeEdges = this->_apta.getNodeEdges();
+    Apta::NodeEdges & nodeEdges = this->_apta.getNodeEdges();
     Apta::NodeEdges::iterator nodeChildren = nodeEdges.find(nodeId);
 
     if (nodeChildren == nodeEdges.end()) { // Not found

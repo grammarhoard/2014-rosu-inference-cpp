@@ -9,12 +9,11 @@ void Exbar::search()
 {
     this->_maxRed += 1;
 
-    Apta::Nodes redNodes = this->_apta.getRedNodes();
+    Apta::Nodes & redNodes = this->_apta.getRedNodes();
 
     // Limits the number of searches to the number of red nodes
     if (redNodes.size() > this->_maxRed) {
-        LOG(DEBUG) << "Limit exceeded: the number of redNodes (" << redNodes.size()
-            << ") is greater than maxRed (" << this->_maxRed << ")";
+        LOG(DEBUG) << "Limit exceeded: the number of redNodes (" << redNodes.size() << ") is greater than maxRed (" << this->_maxRed << ")";
         return;
     }
 
@@ -26,8 +25,7 @@ void Exbar::search()
     }
 
     pair<string, string> pickedBlueNode = this->_pickBlueNode(); // (id, label)
-    LOG(DEBUG) << "Blue node picked: id = '" << pickedBlueNode.first
-        << "', label = '" << pickedBlueNode.second << "'";
+    LOG(DEBUG) << "Blue node picked: id = '" << pickedBlueNode.first << "', label = '" << pickedBlueNode.second << "'";
 
     // Try to merge with all red nodes that have the same label
     for (Apta::Nodes::iterator iterator = redNodes.begin(); iterator != redNodes.end(); ++iterator) {
@@ -36,8 +34,7 @@ void Exbar::search()
         }
         if (this->_tryMerge(iterator->first, pickedBlueNode.first)) {
             // Red node is successfully merged with blue node
-            LOG(DEBUG) << "R: '" << iterator->first
-                << "' merged successfully with B: '" << pickedBlueNode.first << "'";
+            LOG(DEBUG) << "R: '" << iterator->first << "' merged successfully with B: '" << pickedBlueNode.first << "'";
 
             // Continue to search
             this->search();
@@ -55,7 +52,7 @@ void Exbar::search()
 
 pair<string, string> Exbar::_pickBlueNode() // (id, label)
 {
-    Apta::Nodes blueNodes = this->_apta.getBlueNodes();
+    Apta::Nodes & blueNodes = this->_apta.getBlueNodes();
     Apta::Nodes::iterator iterator;
 
     if (this->_noPossibleMerges == 0) {
@@ -69,6 +66,7 @@ pair<string, string> Exbar::_pickBlueNode() // (id, label)
             // The blue node's label does not exist in the red node's label set
             // Force promotion to red
             this->_colorNodeRed(iterator->first);
+            iterator = blueNodes.begin();
 
             //TODO maybe more criteria for finding this kind of nodes
         }
@@ -76,10 +74,8 @@ pair<string, string> Exbar::_pickBlueNode() // (id, label)
         this->_noPossibleMerges = 1;
     }
 
-    Apta::Nodes & blueNodesR = this->_apta.getBlueNodes();
-
     // 2. Look for blue nodes that have only one or more possible merge(s)
-    for (iterator = blueNodesR.begin(); iterator != blueNodesR.end(); ++iterator) {
+    for (iterator = blueNodes.begin(); iterator != blueNodes.end(); iterator++) {
 
         // Get possible number of merges (number of red nodes with same label)
         size_t localNoPossibleMerges = this->_apta.getNumberRedNodesByLabel(iterator->second);
@@ -105,8 +101,7 @@ pair<string, string> Exbar::_pickBlueNode() // (id, label)
 
 bool Exbar::_tryMerge(string redNodeId, string blueNodeId)
 {
-    LOG(DEBUG) << "Trying to merge red node '" << redNodeId
-        << "' with blue node '" << blueNodeId << "'";
+    LOG(DEBUG) << "Trying to merge red node '" << redNodeId << "' with blue node '" << blueNodeId << "'";
 
     Apta::NodeEdges & nodeEdges = this->_apta.getNodeEdges();
     Apta::NodeEdges & nodeEdges2 = this->_apta.getNodeEdges2();
@@ -123,8 +118,7 @@ bool Exbar::_tryMerge(string redNodeId, string blueNodeId)
                     this->_apta.getLabelByNodeId(redNodeChild.second) !=
                     this->_apta.getLabelByNodeId(blueNodeChild.second)
                 ) {
-                    LOG(DEBUG) << "Merge failed! the nodes have children on a common "
-                        << "symbol that lead to nodes which are not equivalent";
+                    LOG(DEBUG) << "Merge failed! the nodes have children on a common " << "symbol that lead to nodes which are not equivalent";
                     return false;
                 }
             }
