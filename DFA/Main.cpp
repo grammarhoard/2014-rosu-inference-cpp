@@ -1,107 +1,26 @@
-#include "TrainingSet.h"
-#include "Apta.h"
-#include "AptaVisualization.h"
-#include "Exbar.h"
-#include "Edsm.h"
-#include "Dfa.h"
+#include "MainHelper.h"
 
-#include <iostream> // cin, cout, cerr
-
-using namespace std;
-
-void populateTrainingSet1(TrainingSet & trainingSet);
-void populateTrainingSet2(TrainingSet & trainingSet);
-void populateTrainingSet3(TrainingSet & trainingSet);
-void populateTrainingSetFromFile(TrainingSet & trainingSet);
-Apta buildApta(TrainingSet & trainingSet, bool useWhiteNodes, string aptaVisualizationOutputName);
+#include "easylogging++.h"
+_INITIALIZE_EASYLOGGINGPP
 
 int main()
 {
-    // Add positive and negative samples
-    TrainingSet trainingSet;
+    el::Configurations defaultConf;
+    defaultConf.setToDefault();
+    defaultConf.set(el::Level::Global, el::ConfigurationType::Format, "%datetime %level %msg");
+    defaultConf.set(el::Level::Global, el::ConfigurationType::ToStandardOutput, "false");
+    defaultConf.set(el::Level::Global, el::ConfigurationType::MaxLogFileSize, "33554432");
+    defaultConf.set(el::Level::Global, el::ConfigurationType::PerformanceTracking, "true");
+    defaultConf.set(el::Level::Debug, el::ConfigurationType::Enabled, "false");
+    el::Loggers::reconfigureLogger("default", defaultConf);
 
-    string visualizationPrefix = "TS1\\";
-    populateTrainingSet1(trainingSet);
-    // populateTrainingSet2(trainingSet);
-    // populateTrainingSet3(trainingSet);
-    // populateTrainingSetFromFile(trainingSet);
+    MainHelper mainHelper;
+    // string visualizationPrefix = "D:\\Master Thesis\\Documentation\\Thesis LaTeX\\Pictures\\DFA\\";
+    // mainHelper.runSimpleTrainingSet(visualizationPrefix);
+    // mainHelper.runSimpleTrainingSet(visualizationPrefix, 2);
+    // mainHelper.runSimpleTrainingSet(visualizationPrefix, 3);
 
-    // Build APTA
-    Apta apta;
-    string aptaVisualizationOutputName;
+    mainHelper.runTrainingSetFromFile("sample\\sample2.php");
 
-    aptaVisualizationOutputName = visualizationPrefix + "Exbar_Apta.svg";
-    apta = buildApta(trainingSet, false, aptaVisualizationOutputName);
-
-    Exbar exbar(apta, visualizationPrefix + "Exbar_");
-    exbar.search();
-
-    // Build APTA again because now we also have white nodes
-    aptaVisualizationOutputName = visualizationPrefix + "Edsm_Apta.svg";
-    apta = buildApta(trainingSet, true, aptaVisualizationOutputName);
-
-    Edsm edsm(apta, visualizationPrefix + "Edsm_");
-    edsm.search();
-
-    // Build DFA
-    Dfa dfa;
-    dfa.build(apta);
-    dfa.get();
-
-    cout << "0" << endl;
     return 0;
-}
-
-void populateTrainingSet1(TrainingSet & trainingSet)
-{
-    trainingSet.addSample("1", true);
-    trainingSet.addSample("110", true);
-    trainingSet.addSample("01", true);
-    trainingSet.addSample("001", true);
-
-    trainingSet.addSample("00", false);
-    trainingSet.addSample("10", false);
-    trainingSet.addSample("000", false);
-}
-
-void populateTrainingSet2(TrainingSet & trainingSet)
-{
-    trainingSet.addSample("1", true);
-    trainingSet.addSample("11", true);
-    trainingSet.addSample("1111", true);
-
-    trainingSet.addSample("0", false);
-    trainingSet.addSample("101", false);
-}
-
-void populateTrainingSet3(TrainingSet & trainingSet)
-{
-    trainingSet.addSample("a", true);
-    trainingSet.addSample("abaa", true);
-    trainingSet.addSample("bb", true);
-
-    trainingSet.addSample("abb", false);
-    trainingSet.addSample("b", false);
-}
-
-void populateTrainingSetFromFile(TrainingSet & trainingSet)
-{
-    try {
-        trainingSet.addSampleFromFile("sample\\sample2.php", true);
-        // trainingSet.addSampleFromFile("sample", true);
-    }
-    catch (exception exception) {
-        cerr << exception.what() << endl;
-    }
-}
-
-Apta buildApta(TrainingSet & trainingSet, bool useWhiteNodes, string aptaVisualizationOutputName)
-{
-    Apta apta;
-    apta.build(trainingSet, useWhiteNodes);
-
-    AptaVisualization aptaVisualization(aptaVisualizationOutputName.c_str());
-    aptaVisualization.build(apta);
-
-    return apta;
 }

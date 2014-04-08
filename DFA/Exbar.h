@@ -3,13 +3,13 @@
  */
 
 #include "AptaBasedAlgorithm.h"
-#include <assert.h>
+#include "easylogging++.h"
 
 #pragma once
 class Exbar: public AptaBasedAlgorithm
 {
 public:
-    Exbar(Apta apta, string visualizationPrefix);
+    Exbar(Apta apta, bool buildVisualizations, string visualizationPrefix = "");
     void search();
     ~Exbar();
 private:

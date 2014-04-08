@@ -1,8 +1,9 @@
 #include "AptaBasedAlgorithm.h"
 
-AptaBasedAlgorithm::AptaBasedAlgorithm(Apta apta, string visualizationPrefix)
+AptaBasedAlgorithm::AptaBasedAlgorithm(Apta apta, bool buildVisualizations, string visualizationPrefix)
 {
     this->_apta = apta;
+    this->_buildVisualizations = buildVisualizations;
     this->_visualizationPrefix = visualizationPrefix;
 }
 

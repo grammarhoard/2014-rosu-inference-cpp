@@ -12,11 +12,6 @@ Apta::Apta() : _data(& _nodeEdges)
 {
 }
 
-Apta::A Apta::get()
-{
-    return this->_data;
-}
-
 Apta::Nodes & Apta::getRedNodes()
 {
     return this->_redNodes;
@@ -60,13 +55,14 @@ void Apta::build(TrainingSet trainingSet, bool useWhiteNodes)
         this->_addPath(this->_rootId, sample.first,
             sample.second ? Apta::ACCEPTED : Apta::REJECTED);
     }
+}
 
-    // Build _data
-
+void Apta::generateData()
+{
     Q nodeIds;
     Fp acceptedNodes;
     Fm rejectedNodes;
-    
+
     Nodes allNodes;
     allNodes.insert(this->_redNodes.begin(), this->_redNodes.end());
     allNodes.insert(this->_blueNodes.begin(), this->_blueNodes.end());
@@ -81,11 +77,17 @@ void Apta::build(TrainingSet trainingSet, bool useWhiteNodes)
         nodeIds.insert(node.first);
     }
 
-    this->_data.Q  = nodeIds;
-    this->_data.Z  = this->_alphabet;
-    this->_data.s  = this->_rootId;
+    this->_data.Q = nodeIds;
+    this->_data.Z = this->_alphabet;
+    this->_data.s = this->_rootId;
     this->_data.Fp = acceptedNodes;
     this->_data.Fm = rejectedNodes;
+}
+
+//ATTENTION!!! You may want to call generateData() before calling this
+Apta::A Apta::get()
+{
+    return this->_data;
 }
 
 string Apta::getLabelByNodeId(string nodeId)

@@ -73,8 +73,6 @@ void AptaVisualization::_createNode(Graph & graph, GraphAttributes & graphAttrib
 
 void AptaVisualization::_createEdges(Apta apta, Graph & graph, GraphAttributes & graphAttributes)
 {
-    //FIXME edges from nodes to themselves are not shown
-
     Apta::NodeEdges::iterator iterator2;
     Apta::NodeEdges nodeEdges = apta.getNodeEdges();
 

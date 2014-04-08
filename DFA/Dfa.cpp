@@ -16,6 +16,7 @@ Dfa::D Dfa::get()
 
 void Dfa::build(Apta apta)
 {
+    apta.generateData();
     Apta::A a = apta.get();
     this->_nodeEdges = apta.getNodeEdges();
     this->_data.Q = a.Q;

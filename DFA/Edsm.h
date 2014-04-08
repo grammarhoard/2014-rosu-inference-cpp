@@ -4,13 +4,14 @@
  */
 
 #include "AptaBasedAlgorithm.h"
+#include "easylogging++.h"
 #include <limits> // numeric_limits
 
 #pragma once
 class Edsm: public AptaBasedAlgorithm
 {
 public:
-    Edsm(Apta apta, string visualizationPrefix);
+    Edsm(Apta apta, bool buildVisualizations, string visualizationPrefix = "");
     void search();
     ~Edsm();
 private:

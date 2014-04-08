@@ -68,7 +68,6 @@ public:
     };
 
     Apta();
-    A get();
 
     Nodes & getRedNodes();
     Nodes & getBlueNodes();
@@ -81,6 +80,9 @@ public:
      * Build APTA from Training Set starting with the Root Node
      */
     void build(TrainingSet trainingSet, bool useWhiteNodes);
+
+    void generateData();
+    A get();
 
     string getLabelByNodeId(string nodeId);
     void colorNodeRed(string nodeId);

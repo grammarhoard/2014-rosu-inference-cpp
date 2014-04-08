@@ -1,6 +1,7 @@
 #include "Exbar.h"
 
-Exbar::Exbar(Apta apta, string visualizationPrefix) : AptaBasedAlgorithm(apta, visualizationPrefix)
+Exbar::Exbar(Apta apta, bool buildVisualizations, string visualizationPrefix) :
+    AptaBasedAlgorithm(apta, buildVisualizations, visualizationPrefix)
 {
 }
 
@@ -12,22 +13,21 @@ void Exbar::search()
 
     // Limits the number of searches to the number of red nodes
     if (redNodes.size() > this->_maxRed) {
-        printf("Limit exceeded: the number of redNodes (%i) is greater than maxRed (%i)!\n",
-            redNodes.size(), this->_maxRed
-        );
+        LOG(DEBUG) << "Limit exceeded: the number of redNodes (" << redNodes.size()
+            << ") is greater than maxRed (" << this->_maxRed << ")";
         return;
     }
 
     // No blue nodes exist
     if (this->_apta.getBlueNodes().size() == 0) {
         // Found a solution
-        printf("Solution Found: No blue nodes exist!\n");
+        LOG(DEBUG) << "Solution Found: No blue nodes exist";
         return;
     }
 
     pair<string, string> pickedBlueNode = this->_pickBlueNode(); // (id, label)
-    printf("Blue node picked: id='%s', label='%s'!\n",
-        pickedBlueNode.first.c_str(), pickedBlueNode.second.c_str());
+    LOG(DEBUG) << "Blue node picked: id = '" << pickedBlueNode.first
+        << "', label = '" << pickedBlueNode.second << "'";
 
     // Try to merge with all red nodes that have the same label
     for (Apta::Nodes::iterator iterator = redNodes.begin(); iterator != redNodes.end(); ++iterator) {
@@ -36,8 +36,8 @@ void Exbar::search()
         }
         if (this->_tryMerge(iterator->first, pickedBlueNode.first)) {
             // Red node is successfully merged with blue node
-            printf("R: '%s' merged successfully with B: '%s'!\n",
-                iterator->first.c_str(), pickedBlueNode.first.c_str());
+            LOG(DEBUG) << "R: '" << iterator->first
+                << "' merged successfully with B: '" << pickedBlueNode.first << "'";
 
             // Continue to search
             this->search();
@@ -56,12 +56,12 @@ void Exbar::search()
 pair<string, string> Exbar::_pickBlueNode() // (id, label)
 {
     Apta::Nodes blueNodes = this->_apta.getBlueNodes();
+    Apta::Nodes::iterator iterator;
 
     if (this->_noPossibleMerges == 0) {
         // 1. Look for blue nodes that can't be merged with any red node
-        Apta::NodeLabels redNodesLabels = this->_apta.getRedNodesLabels();
-        for (Apta::Nodes::iterator iterator = blueNodes.begin();
-            iterator != blueNodes.end(); ++iterator) {
+        Apta::NodeLabels & redNodesLabels = this->_apta.getRedNodesLabels();
+        for (iterator = blueNodes.begin(); iterator != blueNodes.end(); ++iterator) {
 
             if (this->_apta.redNodeLabelExists(iterator->second)) { // Found
                 continue;
@@ -76,9 +76,10 @@ pair<string, string> Exbar::_pickBlueNode() // (id, label)
         this->_noPossibleMerges = 1;
     }
 
+    Apta::Nodes & blueNodesR = this->_apta.getBlueNodes();
+
     // 2. Look for blue nodes that have only one or more possible merge(s)
-    for (Apta::Nodes::iterator iterator = blueNodes.begin();
-        iterator != blueNodes.end(); ++iterator) {
+    for (iterator = blueNodesR.begin(); iterator != blueNodesR.end(); ++iterator) {
 
         // Get possible number of merges (number of red nodes with same label)
         size_t localNoPossibleMerges = this->_apta.getNumberRedNodesByLabel(iterator->second);
@@ -104,8 +105,8 @@ pair<string, string> Exbar::_pickBlueNode() // (id, label)
 
 bool Exbar::_tryMerge(string redNodeId, string blueNodeId)
 {
-    printf("Trying to merge red node '%s' with blue node '%s'!\n",
-        redNodeId.c_str(), blueNodeId.c_str());
+    LOG(DEBUG) << "Trying to merge red node '" << redNodeId
+        << "' with blue node '" << blueNodeId << "'";
 
     Apta::NodeEdges & nodeEdges = this->_apta.getNodeEdges();
     Apta::NodeEdges & nodeEdges2 = this->_apta.getNodeEdges2();
@@ -122,8 +123,8 @@ bool Exbar::_tryMerge(string redNodeId, string blueNodeId)
                     this->_apta.getLabelByNodeId(redNodeChild.second) !=
                     this->_apta.getLabelByNodeId(blueNodeChild.second)
                 ) {
-                    printf("Merge failed! the nodes have children on a common %s",
-                        "symbol that lead to nodes which are not equivalent!\n");
+                    LOG(DEBUG) << "Merge failed! the nodes have children on a common "
+                        << "symbol that lead to nodes which are not equivalent";
                     return false;
                 }
             }
@@ -139,10 +140,12 @@ bool Exbar::_tryMerge(string redNodeId, string blueNodeId)
     // Remove blue node
     this->_apta.getBlueNodes().erase(blueNodeId);
 
-    char outputFileName[_MAXSTRING];
-    sprintf_s(outputFileName, _MAXSTRING, "%s_merged_with_%s.svg",
-        redNodeId.c_str(), blueNodeId.c_str());
-    this->_buildVisualization(outputFileName);
+    if (this->_buildVisualizations) {
+        char outputFileName[_MAXSTRING];
+        sprintf_s(outputFileName, _MAXSTRING, "%s_merged_with_%s.svg",
+            redNodeId.c_str(), blueNodeId.c_str());
+        this->_buildVisualization(outputFileName);
+    }
 
     return true;
 }
@@ -151,14 +154,16 @@ void Exbar::_colorNodeRed(string nodeId)
 {
     this->_apta.colorNodeRed(nodeId);
 
-    printf("Blue node '%s' has been promoted to red!\n", nodeId.c_str());
+    LOG(DEBUG) << "Blue node '" << nodeId << "' has been promoted to red";
 
     this->_maxRed++;
 
-    char outputFileName[_MAXSTRING];
-    sprintf_s(outputFileName, _MAXSTRING, "%s_colored_red.svg",
-        nodeId.c_str());
-    this->_buildVisualization(outputFileName);
+    if (this->_buildVisualizations) {
+        char outputFileName[_MAXSTRING];
+        sprintf_s(outputFileName, _MAXSTRING, "%s_colored_red.svg",
+            nodeId.c_str());
+        this->_buildVisualization(outputFileName);
+    }
 }
 
 Exbar::~Exbar()

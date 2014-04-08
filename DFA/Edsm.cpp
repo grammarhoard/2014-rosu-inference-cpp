@@ -1,6 +1,7 @@
 #include "Edsm.h"
 
-Edsm::Edsm(Apta apta, string visualizationPrefix) : AptaBasedAlgorithm(apta, visualizationPrefix)
+Edsm::Edsm(Apta apta, bool buildVisualizations, string visualizationPrefix) :
+    AptaBasedAlgorithm(apta, buildVisualizations, visualizationPrefix)
 {
     this->_minusInfinity = numeric_limits<int>::min();
 }
@@ -37,8 +38,8 @@ void Edsm::search()
         // 2. If there exists a blue node that cannot be merged
         //     with any red node, promote it to red and go to step 1
         if (localMaxMergeScore == this->_minusInfinity) {
-            printf("Blue node '%s' cannot be merged with any red node, so it is promoted to red!\n",
-                blueNode->first.c_str());
+            LOG(DEBUG) << "Blue node '" << blueNode->first
+                << "' cannot be merged with any red node, so it is promoted to red";
 
             this->_colorNodeRed(blueNode->first);
             this->search();
@@ -53,8 +54,8 @@ void Edsm::search()
             string redNodeId = get<0>(merge);
             string blueNodeId = get<1>(merge);
 
-            printf("Merging red node '%s' with blue node'%s'",
-                redNodeId.c_str(), blueNodeId.c_str());
+            LOG(DEBUG) << "Merging red node '" << redNodeId
+                << "' with blue node '" << blueNodeId << "'";
 
             this->_merge(redNodeId, blueNodeId);
             this->search();
@@ -100,12 +101,14 @@ void Edsm::_colorNodeRed(string nodeId)
 {
     this->_apta.colorNodeRed(nodeId);
 
-    printf("Blue node '%s' has been promoted to red!\n", nodeId.c_str());
+    LOG(DEBUG) << "Blue node '" << nodeId << "' has been promoted to red";
 
-    char outputFileName[_MAXSTRING];
-    sprintf_s(outputFileName, _MAXSTRING, "%s_colored_red.svg",
-        nodeId.c_str());
-    this->_buildVisualization(outputFileName);
+    if (this->_buildVisualizations) {
+        char outputFileName[_MAXSTRING];
+        sprintf_s(outputFileName, _MAXSTRING, "%s_colored_red.svg",
+            nodeId.c_str());
+        this->_buildVisualization(outputFileName);
+    }
 
     // Color its primary children to blue
     Apta::NodeEdges nodeEdges = this->_apta.getNodeEdges();
@@ -134,10 +137,12 @@ void Edsm::_merge(string redNodeId, string blueNodeId)
     // Remove blue node
     this->_apta.getBlueNodes().erase(blueNodeId);
 
-    char outputFileName[_MAXSTRING];
-    sprintf_s(outputFileName, _MAXSTRING, "%s_merged_with_%s.svg",
-        redNodeId.c_str(), blueNodeId.c_str());
-    this->_buildVisualization(outputFileName);
+    if (this->_buildVisualizations) {
+        char outputFileName[_MAXSTRING];
+        sprintf_s(outputFileName, _MAXSTRING, "%s_merged_with_%s.svg",
+            redNodeId.c_str(), blueNodeId.c_str());
+        this->_buildVisualization(outputFileName);
+    }
 }
 
 Edsm::~Edsm()
