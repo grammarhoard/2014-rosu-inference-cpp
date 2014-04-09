@@ -8,30 +8,28 @@ Edsm::Edsm(Apta apta, bool buildVisualizations, string visualizationPrefix) :
 
 void Edsm::search()
 {
-    set<tuple<string, string, int>> merges; // set(tuple(redNodeId, blueNodeId, mergingScore))
+    tuple<string, string, int> merge;
+    set<tuple<string, string, int>> merges; // set(tuple(redNodeId, blueNodeId, mergeScore))
     int maxMergeScore = this->_minusInfinity;
 
     Apta::Nodes & blueNodes = this->_apta.getBlueNodes();
-    Apta::Nodes::iterator blueNode;
     Apta::Nodes & redNodes = this->_apta.getRedNodes();
+    Apta::Nodes::iterator blueNode;
     Apta::Nodes::iterator redNode;
 
     // 1. Evaluate all red/blue merges
     for (blueNode = blueNodes.begin(); blueNode != blueNodes.end(); ++blueNode) {
+        int localMaxMergeScore = this->_minusInfinity;
         for (redNode = redNodes.begin(); redNode != redNodes.end(); ++redNode) {
             int mergeScore = this->_buildMergeScore(redNode->first, blueNode->first);
-            merges.insert(make_tuple(redNode->first, blueNode->first, mergeScore));
-        }
+            merge = make_tuple(redNode->first, blueNode->first, mergeScore);
+            merges.insert(merge);
 
-        int localMaxMergeScore = this->_minusInfinity;
-
-        for (tuple<string, string, int> merge : merges) {
-            int mergeScore = get<2>(merge);
-            if (localMaxMergeScore < mergeScore) {
-                localMaxMergeScore = mergeScore;
-            }
             if (maxMergeScore < mergeScore) {
                 maxMergeScore = mergeScore;
+            }
+            if (localMaxMergeScore < mergeScore) {
+                localMaxMergeScore = mergeScore;
             }
         }
 
@@ -49,16 +47,18 @@ void Edsm::search()
     // 3. If no blue node is promotable, perform the highest scoring
     //     red/blue merge and then go to step 1
     for (tuple<string, string, int> merge : merges) {
-        if (get<2>(merge) == maxMergeScore) {
-            string redNodeId = get<0>(merge);
-            string blueNodeId = get<1>(merge);
-
-            LOG(DEBUG) << "Merging red node '" << redNodeId << "' with blue node '" << blueNodeId << "'";
-
-            this->_merge(redNodeId, blueNodeId);
-            this->search();
-            return;
+        if (get<2>(merge) != maxMergeScore) {
+            continue;
         }
+
+        string redNodeId = get<0>(merge);
+        string blueNodeId = get<1>(merge);
+
+        LOG(DEBUG) << "Merging red node '" << redNodeId << "' with blue node '" << blueNodeId << "'";
+
+        this->_merge(redNodeId, blueNodeId);
+        this->search();
+        return;
     }
 
     // 4. Halt
@@ -73,9 +73,10 @@ int Edsm::_buildMergeScore(string redNodeId, string blueNodeId)
     int numberOfLabels = 0;
     Apta::NodeEdges & nodeEdges = this->_apta.getNodeEdges();
 
-    // Check determination rule (the children of equivalent nodes must be equivalent)
     Apta::NodeEdges::iterator redNode = nodeEdges.find(redNodeId);
     Apta::NodeEdges::iterator blueNode = nodeEdges.find(blueNodeId);
+
+    // Check determination rule (the children of equivalent nodes must be equivalent)
     if (redNode != nodeEdges.end() && blueNode != nodeEdges.end()) { // Both found
         // Both nodes have children
         for (pair<char, string> redNodeChild : redNode->second) {
@@ -109,7 +110,7 @@ void Edsm::_colorNodeRed(string nodeId)
     }
 
     // Color its primary children to blue
-    Apta::NodeEdges & nodeEdges = this->_apta.getNodeEdges();
+    Apta::NodeEdges nodeEdges = this->_apta.getNodeEdges();
     Apta::NodeEdges::iterator nodeChildren = nodeEdges.find(nodeId);
 
     if (nodeChildren == nodeEdges.end()) { // Not found
@@ -119,7 +120,8 @@ void Edsm::_colorNodeRed(string nodeId)
     Apta::Nodes & blueNodes = this->_apta.getBlueNodes();
     Apta::Nodes & whiteNodes = this->_apta.getWhiteNodes();
     for (pair<char, string> nodeChild : nodeChildren->second) {
-        blueNodes.insert({ nodeChild.second, this->_apta.getLabelByNodeId(nodeChild.second) });
+        string label = this->_apta.getLabelByNodeId(nodeChild.second);
+        blueNodes.insert({ nodeChild.second, label });
         whiteNodes.erase(nodeChild.second);
     }
 }

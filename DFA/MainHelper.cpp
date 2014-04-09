@@ -121,7 +121,6 @@ void MainHelper::runSimpleTrainingSet(string visualizationPrefix, int sampleNo)
 void MainHelper::runTrainingSetFromFile(string fileName)
 {
     clock_t time;
-    Apta apta;
 
     // Add positive and negative samples
     LOG(INFO) << "----- Building training set ..."; time = clock();
@@ -131,21 +130,27 @@ void MainHelper::runTrainingSetFromFile(string fileName)
 
     // Build APTA
     LOG(INFO) << "Building APTA for Exbar ..."; time = clock();
-    apta.build(trainingSet, false);
+    Apta apta1;
+    apta1.build(trainingSet, false);
     LOG(INFO) << "Finished building APTA for Exbar: " << clock() - time << " ms";
 
     LOG(INFO) << "Running Exbar ..."; time = clock();
-    Exbar exbar(apta, false);
+    Exbar exbar(apta1, false);
     exbar.search();
     LOG(INFO) << "Finished running Exbar: " << clock() - time << " ms";
 
+    // Cleaning up
+    apta1.~Apta();
+    exbar.~Exbar();
+
     // Build APTA again because now we also have white nodes
     LOG(INFO) << "Building APTA for EDSM..."; time = clock();
-    apta.build(trainingSet, true);
+    Apta apta2;
+    apta2.build(trainingSet, true);
     LOG(INFO) << "Finished building APTA for EDSM: " << clock() - time << " ms";
 
     LOG(INFO) << "Running EDSM..."; time = clock();
-    Edsm edsm(apta, false);
+    Edsm edsm(apta2, false);
     edsm.search();
     LOG(INFO) << "Finished running EDSM: " << clock() - time << " ms";
 }

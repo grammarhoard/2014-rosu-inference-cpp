@@ -11,11 +11,16 @@
 class Edsm: public AptaBasedAlgorithm
 {
 public:
+    typedef tuple<string, string, int> mergeScore; // tuple(redNodeId, blueNodeId, mergeScore)
+    typedef set<mergeScore> mergeScores;
+
     Edsm(Apta apta, bool buildVisualizations, string visualizationPrefix = "");
     void search();
     ~Edsm();
 private:
     int _minusInfinity;
+
+    mergeScores _mergeScores;
 
     /*
      * Build merge score as the number of strings that end in the same state

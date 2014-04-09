@@ -28,7 +28,9 @@ void AptaBasedAlgorithm::_switchParents(string blueNodeId, string redNodeId)
 
     Apta::NodeChildren & blueNodesParents = blueNodesParentsIterator->second;
     Apta::NodeChildren::iterator blueNodeParent;
-    for (blueNodeParent = blueNodesParents.begin(); blueNodeParent != blueNodesParents.end();) {
+    for (Apta::NodeChildren::iterator & blueNodeParent = blueNodesParents.begin();
+        blueNodeParent != blueNodesParents.end();
+    ) {
         Apta::NodeChildren & localNodeChildren = nodeEdges.find(blueNodeParent->second)->second;
         Apta::NodeChildren::iterator & localNodeChild =
             localNodeChildren.find({ blueNodeParent->first, blueNodeId });
@@ -42,38 +44,47 @@ void AptaBasedAlgorithm::_switchParents(string blueNodeId, string redNodeId)
 
 void AptaBasedAlgorithm::_switchChildren(string blueNodeId, string redNodeId, bool colorBlue)
 {
+    Apta::Nodes & blueNodes = this->_apta.getBlueNodes();
+    Apta::Nodes & whiteNodes = this->_apta.getWhiteNodes();
+
     Apta::NodeEdges & nodeEdges = this->_apta.getNodeEdges();
     Apta::NodeEdges & nodeEdges2 = this->_apta.getNodeEdges2();
 
     Apta::NodeEdges::iterator & blueNodesChildrenIterator = nodeEdges.find(blueNodeId);
-    if (blueNodesChildrenIterator != nodeEdges.end()) { // Found
+    if (blueNodesChildrenIterator == nodeEdges.end()) { // Not found
+        return;
+    }
 
-        Apta::NodeChildren & blueNodesChildren = blueNodesChildrenIterator->second;
-        Apta::NodeChildren::iterator blueNodesChild;
-        for (blueNodesChild = blueNodesChildren.begin(); blueNodesChild != blueNodesChildren.end();) {
+    Apta::NodeChildren localRedNodesChildren;
 
-            // Color them to blue
-            if (colorBlue == true) {
-                this->_apta.getBlueNodes().insert({ blueNodesChild->second, this->_apta.getLabelByNodeId(blueNodesChild->second) });
-                this->_apta.getWhiteNodes().erase(blueNodesChild->second);
-            }
+    Apta::NodeChildren & blueNodesChildren = blueNodesChildrenIterator->second;
+    for (Apta::NodeChildren::iterator & blueNodesChild = blueNodesChildren.begin();
+        blueNodesChild != blueNodesChildren.end();
+    ) {
 
-            Apta::NodeEdges::iterator & redNodesChildren = nodeEdges.find(redNodeId);
-            Apta::NodeChildren localRedNodesChildren;
-            localRedNodesChildren.insert({ blueNodesChild->first, blueNodesChild->second });
-
-            if (redNodesChildren != nodeEdges.end()) { // Found
-                redNodesChildren->second.insert({ blueNodesChild->first, blueNodesChild->second });
-            } else {
-                nodeEdges.insert({ redNodeId, localRedNodesChildren });
-            }
-
-            Apta::NodeChildren & localBlueNodesParent = nodeEdges2.find(blueNodesChild->second)->second;
-            localBlueNodesParent.insert({ blueNodesChild->first, redNodeId });
-            localBlueNodesParent.erase({ blueNodesChild->first, blueNodeId });
-
-            blueNodesChildren.erase(blueNodesChild++);
+        // Color them to blue
+        if (colorBlue == true) {
+            string blueNodeLabel = this->_apta.getLabelByNodeId(blueNodesChild->second);
+            blueNodes.insert({ blueNodesChild->second, blueNodeLabel });
+            whiteNodes.erase(blueNodesChild->second);
         }
+
+        Apta::NodeEdges::iterator & redNodesChildren = nodeEdges.find(redNodeId);
+
+        if (redNodesChildren != nodeEdges.end()) { // Found
+            pair<char, string> newChild = make_pair(blueNodesChild->first, blueNodesChild->second);
+            redNodesChildren->second.insert(newChild);
+        } else {
+            localRedNodesChildren.clear();
+            localRedNodesChildren.insert({ blueNodesChild->first, blueNodesChild->second });
+            nodeEdges.insert({ redNodeId, localRedNodesChildren });
+        }
+
+        Apta::NodeChildren & localBlueNodesParent = nodeEdges2.find(blueNodesChild->second)->second;
+        localBlueNodesParent.insert({ blueNodesChild->first, redNodeId });
+        localBlueNodesParent.erase({ blueNodesChild->first, blueNodeId });
+
+        blueNodesChildren.erase(blueNodesChild++);
     }
 }
 

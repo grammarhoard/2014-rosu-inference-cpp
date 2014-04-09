@@ -104,7 +104,6 @@ bool Exbar::_tryMerge(string redNodeId, string blueNodeId)
     LOG(DEBUG) << "Trying to merge red node '" << redNodeId << "' with blue node '" << blueNodeId << "'";
 
     Apta::NodeEdges & nodeEdges = this->_apta.getNodeEdges();
-    Apta::NodeEdges & nodeEdges2 = this->_apta.getNodeEdges2();
 
     // If the nodes have transitions on a common symbol
     //     that lead to nodes which are not equivalent, merge is not allowed
