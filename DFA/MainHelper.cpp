@@ -139,10 +139,6 @@ void MainHelper::runTrainingSetFromFile(string fileName)
     exbar.search();
     LOG(INFO) << "Finished running Exbar: " << clock() - time << " ms";
 
-    // Cleaning up
-    apta1.~Apta();
-    exbar.~Exbar();
-
     // Build APTA again because now we also have white nodes
     LOG(INFO) << "Building APTA for EDSM..."; time = clock();
     Apta apta2;

@@ -11,8 +11,8 @@
 class Edsm: public AptaBasedAlgorithm
 {
 public:
-    typedef tuple<string, string, int> mergeScore; // tuple(redNodeId, blueNodeId, mergeScore)
-    typedef set<mergeScore> mergeScores;
+    typedef pair<string, string> MergePair; // tuple(redNodeId, blueNodeId)
+    typedef map<MergePair, int> MergeScores; // map(MergePair: score)
 
     Edsm(Apta apta, bool buildVisualizations, string visualizationPrefix = "");
     void search();
@@ -20,7 +20,10 @@ public:
 private:
     int _minusInfinity;
 
-    mergeScores _mergeScores;
+    int _maxScore;
+    MergeScores _mergeScores;
+    void _search();
+    void _promoteBlueNodes(list<string> blueNodesToPromote);
 
     /*
      * Build merge score as the number of strings that end in the same state
@@ -35,6 +38,11 @@ private:
     * Promote a blue node to red
     */
     void _colorNodeRed(string nodeId);
+
+    /*
+     * @Override because we need to create merges for the newly colored into blue nodes
+     */
+    void _switchChildren(string blueNodeId, string redNodeId, bool colorBlue);
 
     void _merge(string redNodeId, string blueNodeId);
 };
