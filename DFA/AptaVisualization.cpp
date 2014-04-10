@@ -56,7 +56,7 @@ void AptaVisualization::buildLegend()
 
     node acceptedNodeLabel = graph.newNode();
     graphAttributes.x(acceptedNodeLabel) = 55;
-    graphAttributes.y(acceptedNodeLabel) = 5;
+    graphAttributes.y(acceptedNodeLabel) = 8;
     graphAttributes.width(acceptedNodeLabel) = 70;
     graphAttributes.strokeColor(acceptedNodeLabel) = Color("#FFFFFF");
     graphAttributes.label(acceptedNodeLabel) = "Accepted Node";
@@ -69,7 +69,7 @@ void AptaVisualization::buildLegend()
 
     node rejectedNodeLabel = graph.newNode();
     graphAttributes.x(rejectedNodeLabel) = 54;
-    graphAttributes.y(rejectedNodeLabel) = 30;
+    graphAttributes.y(rejectedNodeLabel) = 33;
     graphAttributes.width(rejectedNodeLabel) = 70;
     graphAttributes.strokeColor(rejectedNodeLabel) = Color("#FFFFFF");
     graphAttributes.label(rejectedNodeLabel) = "Rejected Node";
@@ -82,7 +82,7 @@ void AptaVisualization::buildLegend()
 
     node unknownNodeLabel = graph.newNode();
     graphAttributes.x(unknownNodeLabel) = 55;
-    graphAttributes.y(unknownNodeLabel) = 55;
+    graphAttributes.y(unknownNodeLabel) = 58;
     graphAttributes.width(unknownNodeLabel) = 70;
     graphAttributes.strokeColor(unknownNodeLabel) = Color("#FFFFFF");
     graphAttributes.label(unknownNodeLabel) = "Unknown Node";

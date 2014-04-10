@@ -17,16 +17,14 @@ int main()
     el::Loggers::reconfigureLogger("default", defaultConf);
 
     MainHelper mainHelper;
-    /*
     string visualizationPrefix = "D:\\Master Thesis\\Documentation\\Thesis LaTeX\\Pictures\\DFA\\";
     string legendVisualizationPrefix = visualizationPrefix + "Legend.svg";
     mainHelper.buildLegendVisualization(legendVisualizationPrefix);
     mainHelper.runSimpleTrainingSet(visualizationPrefix);
     mainHelper.runSimpleTrainingSet(visualizationPrefix, 2);
     mainHelper.runSimpleTrainingSet(visualizationPrefix, 3);
-    */
 
-    mainHelper.runTrainingSetFromFile("sample//sample2.php");
+    // mainHelper.runTrainingSetFromFile("sample//sample2.php");
 
     return 0;
 }
