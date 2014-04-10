@@ -19,6 +19,7 @@ public:
     void populateTrainingSetFromFile(TrainingSet & trainingSet, string fileName);
     Apta buildApta(TrainingSet & trainingSet, bool useWhiteNodes, string aptaVisualizationOutputName);
 
+    void buildLegendVisualization(string visualizationPrefix);
     void runSimpleTrainingSet(string visualizationPrefix, int sampleNo = 1);
     void runTrainingSetFromFile(string fileName);
 };

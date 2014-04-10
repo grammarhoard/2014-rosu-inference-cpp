@@ -134,13 +134,12 @@ void Edsm::_colorNodeRed(string nodeId)
     LOG(DEBUG) << "Blue node '" << nodeId << "' has been promoted to red";
 
     // Color its primary children to blue
-    Apta::NodeEdges nodeEdges = this->_apta.getNodeEdges();
-    Apta::NodeEdges::iterator nodeChildren = nodeEdges.find(nodeId);
-    Apta::Nodes::iterator iterator;
-    MergePair mergePair;
-
     Apta::Nodes & redNodes = this->_apta.getRedNodes();
     Apta::Nodes & blueNodes = this->_apta.getBlueNodes();
+    Apta::Nodes::iterator iterator;
+    Apta::NodeEdges & nodeEdges = this->_apta.getNodeEdges();
+    Apta::NodeEdges::iterator nodeChildren = nodeEdges.find(nodeId);
+    MergePair mergePair;
 
     // Rebuild the merge scores involving this node id
     for (iterator = redNodes.begin(); iterator != redNodes.end(); ++iterator) {

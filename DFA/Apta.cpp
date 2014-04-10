@@ -136,8 +136,10 @@ bool Apta::redNodeLabelExists(string nodeLabel)
 size_t Apta::getNumberRedNodesByLabel(string nodeLabel)
 {
     size_t result = 0;
-    for (string localNodeLabel : this->_redNodesLabels) {
-        if (localNodeLabel == nodeLabel) {
+    Apta::NodeLabels & nodeLabels = this->_redNodesLabels;
+
+    for (Apta::NodeLabels::iterator iterator = nodeLabels.begin(); iterator != nodeLabels.end(); ++iterator) {
+        if (* iterator == nodeLabel) {
             result++;
         }
     }

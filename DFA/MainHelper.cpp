@@ -61,6 +61,12 @@ Apta MainHelper::buildApta(TrainingSet & trainingSet, bool useWhiteNodes, string
     return apta;
 }
 
+void MainHelper::buildLegendVisualization(string visualizationPrefix)
+{
+    AptaVisualization aptaVisualization(visualizationPrefix.c_str());
+    aptaVisualization.buildLegend();
+}
+
 void MainHelper::runSimpleTrainingSet(string visualizationPrefix, int sampleNo)
 {
     clock_t time;

@@ -18,6 +18,7 @@ class AptaVisualization
 public:
     AptaVisualization(const char * outputFileName);
     void build(Apta apta);
+    void buildLegend();
     ~AptaVisualization();
 private:
     const char * _outputFileName;

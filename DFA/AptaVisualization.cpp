@@ -30,6 +30,67 @@ void AptaVisualization::build(Apta apta)
     this->_draw(graphAttributes);
 }
 
+void AptaVisualization::buildLegend()
+{
+    Graph graph;
+    GraphAttributes graphAttributes(graph,
+        GraphAttributes::nodeGraphics |
+        GraphAttributes::nodeLabel |
+        GraphAttributes::nodeStyle |
+
+        GraphAttributes::edgeGraphics |
+        GraphAttributes::edgeLabel |
+        GraphAttributes::edgeStyle |
+        GraphAttributes::edgeType |
+        GraphAttributes::edgeArrow
+    );
+
+    graphAttributes.setAllWidth(this->_width);
+    graphAttributes.setAllHeight(this->_height);
+
+    // Accepted node
+    node acceptedNode = graph.newNode();
+    graphAttributes.shape(acceptedNode) = Shape::shEllipse;
+    graphAttributes.x(acceptedNode) = 5;
+    graphAttributes.y(acceptedNode) = 5;
+
+    node acceptedNodeLabel = graph.newNode();
+    graphAttributes.x(acceptedNodeLabel) = 55;
+    graphAttributes.y(acceptedNodeLabel) = 5;
+    graphAttributes.width(acceptedNodeLabel) = 70;
+    graphAttributes.strokeColor(acceptedNodeLabel) = Color("#FFFFFF");
+    graphAttributes.label(acceptedNodeLabel) = "Accepted Node";
+
+    // Rejected node
+    node rejectedNode = graph.newNode();
+    graphAttributes.shape(rejectedNode) = Shape::shHexagon;
+    graphAttributes.x(rejectedNode) = 5;
+    graphAttributes.y(rejectedNode) = 30;
+
+    node rejectedNodeLabel = graph.newNode();
+    graphAttributes.x(rejectedNodeLabel) = 54;
+    graphAttributes.y(rejectedNodeLabel) = 30;
+    graphAttributes.width(rejectedNodeLabel) = 70;
+    graphAttributes.strokeColor(rejectedNodeLabel) = Color("#FFFFFF");
+    graphAttributes.label(rejectedNodeLabel) = "Rejected Node";
+
+    // Unknown node
+    node unknownNode = graph.newNode();
+    graphAttributes.shape(unknownNode) = Shape::shRect;
+    graphAttributes.x(unknownNode) = 5;
+    graphAttributes.y(unknownNode) = 55;
+
+    node unknownNodeLabel = graph.newNode();
+    graphAttributes.x(unknownNodeLabel) = 55;
+    graphAttributes.y(unknownNodeLabel) = 55;
+    graphAttributes.width(unknownNodeLabel) = 70;
+    graphAttributes.strokeColor(unknownNodeLabel) = Color("#FFFFFF");
+    graphAttributes.label(unknownNodeLabel) = "Unknown Node";
+
+
+    GraphIO::drawSVG(graphAttributes, this->_outputFileName);
+}
+
 void AptaVisualization::_createNodes(Apta apta,
     Graph & graph, GraphAttributes & graphAttributes)
 {
@@ -66,7 +127,7 @@ void AptaVisualization::_createNode(Graph & graph, GraphAttributes & graphAttrib
         graphAttributes.shape(node) = Shape::shEllipse;
     } else if (label == Apta::REJECTED) {
         graphAttributes.shape(node) = Shape::shHexagon;
-    } else { // No label
+    } else { // Unknown node
         graphAttributes.shape(node) = Shape::shRect;
     }
 }
