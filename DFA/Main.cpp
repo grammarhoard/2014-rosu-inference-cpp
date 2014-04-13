@@ -19,12 +19,14 @@ int main()
     MainHelper mainHelper;
     string visualizationPrefix = "D:\\Master Thesis\\Documentation\\Thesis LaTeX\\Pictures\\DFA\\";
     string legendVisualizationPrefix = visualizationPrefix + "Legend.svg";
+    string legendVisualizationPrefix2 = visualizationPrefix + "Legend2.svg";
     mainHelper.buildLegendVisualization(legendVisualizationPrefix);
+    mainHelper.buildLegendVisualization(legendVisualizationPrefix2); // We need it twice because latex will not include the same legend twice
     mainHelper.runSimpleTrainingSet(visualizationPrefix);
     mainHelper.runSimpleTrainingSet(visualizationPrefix, 2);
     mainHelper.runSimpleTrainingSet(visualizationPrefix, 3);
 
-    // mainHelper.runTrainingSetFromFile("sample//sample2.php");
+    // mainHelper.runTrainingSetFromFile("samples//sample1.php");
 
     return 0;
 }
