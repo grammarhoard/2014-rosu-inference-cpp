@@ -33,6 +33,9 @@ ObjectiveContextFreeGrammar LearnCFG::run()
 
         // Rebuild table
         observationTable.build();
+        observationTable.MakeConsistent(); // This gives Step 2
+        //NOTE: It is consistent because the only two strings in K that are similar are lambda and ab and these are in fact congruent
+        G = observationTable.MakeGrammar();
 
         break;
     }

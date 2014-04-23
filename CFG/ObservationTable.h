@@ -3,7 +3,9 @@
 #include <string>
 #include <utility>   // std::make_pair
 #include <vector>
-#include <algorithm> // std::next_permutation
+#include <algorithm> // std::next_permutation, std::set_difference
+
+#include <iostream>
 
 #include "ContextFreeLanguage.h"
 #include "ObjectiveContextFreeGrammar.h"
@@ -21,6 +23,7 @@ public:
     typedef map<string, map<Context, bool>> Table; // map(string k: (Context f, value))
 
     StringSet            K; // non-empty finite set of strings
+    StringSet            KKmK; // Cartesian Product (K x K) \ K
     ContextSet           F; // non-empty finite set of contexts
     GrammaticalStringSet D; // in the finite function mapping F \odot KK to {0, 1}
 

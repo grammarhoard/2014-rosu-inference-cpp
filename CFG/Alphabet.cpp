@@ -17,3 +17,8 @@ set<string> Alphabet::get()
 {
     return this->_data;
 }
+
+bool Alphabet::in(string element)
+{
+    return this->_data.find(element) != this->_data.end();
+}

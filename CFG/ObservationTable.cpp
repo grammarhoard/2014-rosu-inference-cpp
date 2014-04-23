@@ -31,7 +31,12 @@ void ObservationTable::insert(Context f, string u)
 
 void ObservationTable::build()
 {
-    for (string k : this->K) {
+    //TODO maybe also keep KK from the start
+    StringSet KK;
+    KK.insert(this->K.begin(), this->K.end());
+    KK.insert(this->KKmK.begin(), this->KKmK.end());
+
+    for (string k : KK) {
         for (Context f : this->F) {
             this->insert(f, k);
         }
@@ -51,16 +56,19 @@ bool ObservationTable::equivalent(string u, string v)
 bool ObservationTable::isConsistent()
 {
     // I need at least 4 elements
-    if (this->K.size() < 4) {
+    int size = this->K.size();
+    if (size < 4) {
         return true;
     }
 
     vector<string> vectorK(this->K.begin(), this->K.end());
+    vectorK.erase(vectorK.begin());
     do {
         string u1 = vectorK[0];
         string u2 = vectorK[1];
         string v1 = vectorK[2];
         string v2 = vectorK[3];
+        cout << u1 << "-" << u2 << "-" << v1 << "-" << v2 << endl;
 
         if (this->equivalent(u1, u2) && this->equivalent(v1, v2) && !this->equivalent(u1 + u2, v1 + v2)) {
             return false;
@@ -72,42 +80,42 @@ bool ObservationTable::isConsistent()
 
 ObservationTable::ContextSet ObservationTable::MakeConsistent()
 {
-    while (!this->isConsistent()) {
-        // Find u1, u2 and v1, v2 in K, and (l, r) in F
-        //     such that u1 equivalent to u2 and v1 equivalent to v2,
-        //     l u1 v1 r in D and l u2 v2 4 is not in D
+    for (Context context : this->F) {
+        string l = context.first;
+        string r = context.second;
 
-        //TODO improve performance (the permutations are done twice (once for isConsistent and once here)
-        vector<string> vectorK(this->K.begin(), this->K.end());
-        do {
-            string u1 = vectorK[0];
-            string u2 = vectorK[1];
-            string v1 = vectorK[2];
-            string v2 = vectorK[3];
+        //TODO find a better way to implement this (maybe more efficient
+        for (string u1 : this->K) {
+            for (string u2 : this->K) {
+                for (string v1 : this->K) {
+                    for (string v2 : this->K) {
 
-            for (Context context : this->F) {
-                string l = context.first;
-                string r = context.second;
-                if (this->equivalent(u1, u2) && this->equivalent(v1, v2) &&
-                    this->D.find(l + u1 + v1 + r) != this->D.end() && // lu1v1r in D
-                    this->D.find(l + u2 + v2 + r) == this->D.end() // lu2v2r not in D
-                ) {
-                    Context f;
-                    if (this->Mem(l, u1 + v2, r)) {
-                        f = make_pair(l, v2 + r);
-                    } else {
-                        f = make_pair(l + u1, r);
-                    }
-                    this->F.insert(f);
+                        if (this->equivalent(u1, u2) && this->equivalent(v1, v2) &&
+                            this->D.find(l + u1 + v1 + r) != this->D.end() && // lu1v1r in D
+                            this->D.find(l + u2 + v2 + r) == this->D.end() // lu2v2r not in D
+                        ) {
+                            Context f;
+                            if (this->Mem(l, u1 + v2, r)) {
+                                f = make_pair(l, v2 + r);
+                            } else {
+                                f = make_pair(l + u1, r);
+                            }
+                            this->F.insert(f);
 
-                    // Use Mem() to increase D to fill in the observation table;
-                    for (string k : this->K) {
-                        this->insert(f, k);
+                            // Use Mem() to increase D to fill in the observation table;
+                            for (string k : this->K) {
+                                this->insert(f, k);
+                            }
+
+                            for (string kkmk : this->KKmK) {
+                                this->insert(f, kkmk);
+                            }
+                        } // end if
                     }
                 }
             }
-        } while (next_permutation(vectorK.begin(), vectorK.begin() + 4));
-    }
+        }
+    } // end for (Context ...)
 
     //TODO maybe we don't need it but the Algorithm 1 from the paper returns it
     return this->F;
@@ -116,46 +124,85 @@ ObservationTable::ContextSet ObservationTable::MakeConsistent()
 ObjectiveContextFreeGrammar ObservationTable::MakeGrammar()
 {
     ObjectiveContextFreeGrammar G;
-    map<string, string> equivalenceClasses; // map(k, value)
+    map<ContextSet, set<string>> equivalenceClasses; // map(distribution: set of strings)
+    map<string, string> lexicalRulesData; // map(terminal: non-terminal)
+    map<string, string> binaryRulesData; // map(non-terminal: string w)
+    char currentChar = 'A';
 
     // Divide K into equivalence classes according to \equiv F
     for (string k : this->K) {
-        if (equivalenceClasses.find(k) != equivalenceClasses.end()) { // Found
-            continue;
+        ContextSet distribution;
+        for (Context context : this->F) {
+            string l = context.first;
+            string r = context.second;
+            if (this->Mem(l, k, r)) {
+                distribution.insert(context);
+            }
         }
-
-        //TODO improve this
-        equivalenceClasses.insert({ k, k });
+        if (equivalenceClasses.find(distribution) != equivalenceClasses.end()) { // Found
+            equivalenceClasses[distribution].insert(k);
+        } else { // Not found
+            set<string> ks;
+            ks.insert(k);
+            equivalenceClasses.insert({ distribution, ks });
+        }
     }
-
-    char currentTerminal = 'A';
 
     // Let V be the set of these equivalence classes - set of non terminals
-    for (pair<string, string> equivalenceClass : equivalenceClasses) {
-        if (equivalenceClass.first == "") {
-            G.V.insert("S");
-            continue;
+    for (pair<ContextSet, set<string>> equivalenceClass : equivalenceClasses) {
+        string nonTerminal;
+
+        // Check if this equivalence class can generate a start symbol
+        bool isStart = true;
+        for (string w : equivalenceClass.second) {
+            if (this->D.find(w) == this->D.end()) { // Not found
+                isStart = false;
+            }
         }
 
-        G.V.insert(string(1, currentTerminal));
-        currentTerminal = static_cast<char>(currentTerminal + 1);
-        //TODO what happens when you don't have enough letters :P
+        // Create the non-terminal for this equivalence class
+        if (isStart) {
+            nonTerminal = "S";
+            G.I.insert(nonTerminal);
+        } else {
+            //TODO make it infinite (now it's useful only till Z)
+            //TODO avoid S
+            nonTerminal = string(1, currentChar);
+            currentChar = static_cast<char>(currentChar + 1);
+        }
+        G.V.insert(nonTerminal);
+
+        // Compute lexical rules
+        for (string w : equivalenceClass.second) {
+            if (w == this->_language.lambda) {
+                G.P.insert({ nonTerminal, w }); // N -> lambda
+                continue;
+            }
+
+            // Terminal
+            if (this->_language.getAlphabet().in(w)) {
+                G.P.insert({nonTerminal, w}); // N -> a
+                lexicalRulesData.insert({ w, nonTerminal });
+                continue;
+            }
+
+            // Remember binary rules
+            binaryRulesData.insert({ nonTerminal, w });
+        }
     }
 
-    //TODO Let I ... - set of initial symbols
-    G.I = G.V; //TODO for now
-
-    // Populate productions
-    ObjectiveContextFreeGrammar::Production p;
-    for (string N: G.V) { //TODO N seems to be a nonterminal
-        p = make_pair(N, ""); //TODO get it's value
-        G.P.insert(p);
-
-        //TODO this
-        p = make_pair(N, "SS");
-        G.P.insert(p);
-
-        //TODO another case
+    // Compute binary rules
+    if (binaryRulesData.size() > 0) {
+        int substringLength = 1;
+        for (pair<string, string> binaryRuleData : binaryRulesData) {
+            string rightSide;
+            for (char c : binaryRuleData.second) {
+                string s(1, c);
+                //TODO throw error message if it's not found
+                rightSide += lexicalRulesData[s];
+            }
+            G.P.insert({ binaryRuleData.first, rightSide });
+        }
     }
 
     return G;
@@ -168,9 +215,9 @@ void ObservationTable::addCounterExample(string w, bool positive)
         StringSet substrings = this->getSub(w);
         this->K.insert(substrings.begin(), substrings.end());
 
-        // Compute KK
+        // Compute K x K / K
         StringSet KK = this->getKK();
-        this->K.insert(KK.begin(), KK.end());
+        set_difference(KK.begin(), KK.end(), this->K.begin(), this->K.end(), inserter(this->KKmK, this->KKmK.end()));
     }
 
     //TODO what to do on negative????

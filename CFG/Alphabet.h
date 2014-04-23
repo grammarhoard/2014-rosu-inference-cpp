@@ -12,7 +12,8 @@ public:
 
     void insert(string element);
     set<string> get();
+    bool in(string element);
 private:
-    set<string> _data;
+    set<string> _data; //TODO maybe use chars here
 };
 
