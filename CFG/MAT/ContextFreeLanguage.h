@@ -1,3 +1,9 @@
+/*
+ * Context Free Language (CFG)
+ * ...
+ */
+//TODO write description for ContextFreeLanguage
+
 #include "Alphabet.h"
 
 #pragma once
@@ -9,12 +15,14 @@ public:
     ContextFreeLanguage(Alphabet alphabet);
     ~ContextFreeLanguage();
 
+    Alphabet getAlphabet();
+
     /*
-     * Check if an element is in this language
+     * Returns true if the element is in the language,
+     *     and false otherwise
      */
     bool in(string element);
-    Alphabet getAlphabet();
+
 private:
     Alphabet _alphabet;
 };
-

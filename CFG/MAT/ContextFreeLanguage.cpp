@@ -10,13 +10,18 @@ ContextFreeLanguage::~ContextFreeLanguage()
 {
 }
 
+Alphabet ContextFreeLanguage::getAlphabet()
+{
+    return this->_alphabet;
+}
+
 bool ContextFreeLanguage::in(string element)
 {
     if (element == lambda) {
         return true;
     }
 
-    //TODO find a better way to implement this
+    //TODO find a better way to implement ContextFreeLanguage::in()
     if (element == "ab" || element == "abab" || element == "aabb") {
         // ... and so on -> this is an infinite non-linear context-free language
         return true;
@@ -24,9 +29,4 @@ bool ContextFreeLanguage::in(string element)
 
     // Not in the language
     return false;
-}
-
-Alphabet ContextFreeLanguage::getAlphabet()
-{
-    return this->_alphabet;
 }
