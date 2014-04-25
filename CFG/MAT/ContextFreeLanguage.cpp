@@ -1,8 +1,6 @@
 #include "ContextFreeLanguage.h"
 
-const string ContextFreeLanguage::lambda = "";
-
-ContextFreeLanguage::ContextFreeLanguage(Alphabet alphabet) : _alphabet(alphabet)
+ContextFreeLanguage::ContextFreeLanguage()
 {
 }
 
@@ -10,23 +8,12 @@ ContextFreeLanguage::~ContextFreeLanguage()
 {
 }
 
-Alphabet ContextFreeLanguage::getAlphabet()
+bool ContextFreeLanguage::in(const string w)
 {
-    return this->_alphabet;
-}
-
-bool ContextFreeLanguage::in(string element)
-{
-    if (element == lambda) {
+    //TODO implement ContextFreeLanguage::in()
+    if (w == "" || w == "aab") {
         return true;
     }
 
-    //TODO find a better way to implement ContextFreeLanguage::in()
-    if (element == "ab" || element == "abab" || element == "aabb") {
-        // ... and so on -> this is an infinite non-linear context-free language
-        return true;
-    }
-
-    // Not in the language
     return false;
 }

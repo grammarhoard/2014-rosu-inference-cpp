@@ -8,7 +8,7 @@ Alphabet::~Alphabet()
 {
 }
 
-void Alphabet::insert(string element)
+void Alphabet::insert(const string element)
 {
     this->_data.insert(element);
 }
@@ -20,7 +20,7 @@ set<string> Alphabet::get()
 }
 */
 
-bool Alphabet::in(string element)
+bool Alphabet::in(const string element)
 {
     return this->_data.find(element) != this->_data.end();
 }

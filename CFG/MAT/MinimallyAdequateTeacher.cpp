@@ -1,6 +1,6 @@
 #include "MinimallyAdequateTeacher.h"
 
-MinimallyAdequateTeacher::MinimallyAdequateTeacher(ContextFreeLanguage L): _L(L)
+MinimallyAdequateTeacher::MinimallyAdequateTeacher(Language& L): _L(L)
 {
 }
 
@@ -8,17 +8,17 @@ MinimallyAdequateTeacher::~MinimallyAdequateTeacher()
 {
 }
 
-ContextFreeLanguage MinimallyAdequateTeacher::getLanguage()
+Language& MinimallyAdequateTeacher::getLanguage()
 {
     return this->_L;
 }
 
-bool MinimallyAdequateTeacher::Mem(string l, string u, string r)
+bool MinimallyAdequateTeacher::Mem(const string l, const string u, const string r)
 {
     return this->_L.in(l + u + r);
 }
 
-bool MinimallyAdequateTeacher::Equiv(ContextFreeGrammar G)
+bool MinimallyAdequateTeacher::Equiv(const ContextFreeGrammar& G)
 {
     //TODO implement MinimallyAdequateTeacher::Equiv
     if (this->_counterExample == "") {

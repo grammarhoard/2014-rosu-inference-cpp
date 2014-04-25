@@ -1,20 +1,24 @@
 /*
  * Observation Table
- * ...
+ * The basic data structure used for learning the CFG
+ * We write it as a tuple <K, D, F>, where:
+ *    K - a non-empty finite set of strings
+ *    F - a non-empty finite set of contexts
+ *    D - a set of grammatical strings in F \odot KK (finite function mapping to {false, true})
  */
-//TODO write description for ObservationTable
 
 #include <string>
 #include <set>
 #include <map>
-#include <utility>   // std::make_pair
-
-//TODO maybe you can get rid of algorithm (remove set_difference)
-#include <algorithm> // std::set_difference
+#include <utility>
 
 #include "MinimallyAdequateTeacher.h"
 #include "ContextFreeLanguage.h"
 #include "ContextFreeGrammar.h"
+#include "Terminal.h"
+#include "NonTerminal.h"
+#include "ProductionRight.h"
+#include "NonTerminalNonTerminal.h"
 
 using namespace std;
 
@@ -23,10 +27,15 @@ class ObservationTable
 {
 public:
     typedef set<string> StringSet;
+    typedef set<string> GrammaticalStringSet;
+
     typedef pair<string, string> Context;          // pair of strings (l, r)
     typedef set<Context> ContextSet;
-    typedef set<string> GrammaticalStringSet;
+
     typedef map<string, map<Context, bool>> Table; // map(string k: (Context f, value))
+
+    typedef pair<ContextSet, StringSet> EquivalenceClass;  // pair(distribution, set of strings)
+    typedef map<ContextSet, StringSet> EquivalenceClasses; // map(distribution: set of strings)
 
     StringSet            K;  // non-empty finite set of strings
     ContextSet           F;  // non-empty finite set of contexts
@@ -34,7 +43,7 @@ public:
 
     StringSet            KK; // the Cartesian product between K and itself (K x K)
 
-    ObservationTable(MinimallyAdequateTeacher mat);
+    ObservationTable(MinimallyAdequateTeacher& mat);
     ~ObservationTable();
 
     /*
@@ -45,17 +54,17 @@ public:
     /*
      * The insertion or wrapping operation (combines a context f = (l, r) with a substring u)
      */
-    void insert(Context f, string u);
+    void insert(const Context f, const string u);
 
     /*
-    * Build table and populate D from K and F
-    */
+     * Build table and populate D from K and F
+     */
     void build();
 
     /*
-    * Returns true if they appear in the same set of contexts F
-    */
-    bool equivalent(string u, string v);
+     * Returns true if they appear in the same set of contexts F
+     */
+    bool equivalent(const string u, const string v);
 
     /*
      * Algorithm 1
@@ -74,35 +83,40 @@ public:
      * Add positive counter-example
      * Add Sub(w) to K, where Sub(w) is a set of all possible substrings of w
      */
-    void addPositiveCounterExample(string w);
+    void addPositiveCounterExample(const string w);
 
     /*
      * Returns the set of all substrings of a string w
      */
-    StringSet getSub(string w);
+    StringSet getSub(const string w);
 
     /*
      * Algorithm 3
-     * ...
+     * Returns a context that splits some category X of grammar G
      */
-    //TODO write ObservationTable::FindContext description
-    Context FindContext(string X, Context f, string w);
+    Context FindContext(const string X, const Context f, const string w);
 
     /*
      * Algorithm 4
-     * ...
+     * Add contexts until the derived grammar no longer generates string w (string that is not in L)
      */
-    //TODO write ObservationTable::AddContexts description
-    void AddContexts(ContextFreeGrammar G, string w);
+    void AddContexts(const string w);
 
 private:
-    MinimallyAdequateTeacher _mat;
-    Alphabet _alphabet;
-    string _lambda;
+    MinimallyAdequateTeacher& _mat;
+    Alphabet& _alphabet;
+    const string _lambda;
     Table _table;
+
+    /*
+     * Add Context f, increase D and fill in the observation table
+     */
+    void _addContext(Context f);
 
     /*
      * Get the set of all contexts of a string k, such that lkr in L
      */
-    ContextSet _getDistributionByK(string k);
+    ContextSet _getDistributionByK(const string k);
+
+    EquivalenceClasses _getEquivalenceClasses();
 };

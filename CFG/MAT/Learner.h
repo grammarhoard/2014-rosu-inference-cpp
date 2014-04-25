@@ -4,16 +4,17 @@
  *     2. the learner can ask equivalence queries
  */
 
-#include "ContextFreeLanguage.h"
+#include "MinimallyAdequateTeacher.h"
+#include "Language.h"
 #include "ObservationTable.h"
 #include "ContextFreeGrammar.h"
-#include "MinimallyAdequateTeacher.h"
+#include "ContextFreeLanguage.h"
 
 #pragma once
 class Learner
 {
 public:
-    Learner(MinimallyAdequateTeacher mat);
+    Learner(MinimallyAdequateTeacher& mat);
     ~Learner();
 
     /*
@@ -28,5 +29,5 @@ public:
     ContextFreeGrammar LearnCFG();
 
 private:
-    MinimallyAdequateTeacher _mat;
+    MinimallyAdequateTeacher& _mat;
 };

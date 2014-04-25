@@ -1,15 +1,17 @@
 #include "Alphabet.h"
-#include "ContextFreeLanguage.h"
+#include "Language.h"
 #include "MinimallyAdequateTeacher.h"
 #include "Learner.h"
 
 int main()
 {
-    // Setup the Minimally Adequate Teacher
+    // Build alphabet Sigma, which is known
     Alphabet alphabet;
     alphabet.insert("a");
     alphabet.insert("b");
-    ContextFreeLanguage language(alphabet);
+
+    // Setup the Minimally Adequate Teacher
+    Language language(alphabet);
     MinimallyAdequateTeacher mat(language);
 
     // Learn the grammar

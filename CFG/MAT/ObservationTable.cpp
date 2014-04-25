@@ -1,6 +1,6 @@
 #include "ObservationTable.h"
 
-ObservationTable::ObservationTable(MinimallyAdequateTeacher mat) :
+ObservationTable::ObservationTable(MinimallyAdequateTeacher& mat) :
 _mat(mat), _alphabet(this->_mat.getLanguage().getAlphabet()), _lambda(this->_mat.getLanguage().lambda)
 {
 }
@@ -19,7 +19,7 @@ void ObservationTable::computeKK()
     }
 }
 
-void ObservationTable::insert(Context f, string u)
+void ObservationTable::insert(const Context f, const string u)
 {
     this->_table[u][f] = this->_mat.Mem(f.first, u, f.second);
 
@@ -30,7 +30,7 @@ void ObservationTable::insert(Context f, string u)
 
 void ObservationTable::build()
 {
-    //ATTENTION!!! you may want to compute KK before calling this method
+    this->computeKK();
     for (string k : this->KK) {
         for (Context f : this->F) {
             this->insert(f, k);
@@ -38,7 +38,7 @@ void ObservationTable::build()
     }
 }
 
-bool ObservationTable::equivalent(string u, string v)
+bool ObservationTable::equivalent(const string u, const string v)
 {
     for (Context context : this->F) {
         if (this->_table[u][context] != this->_table[v][context]) {
@@ -54,7 +54,7 @@ void ObservationTable::MakeConsistent()
         string l = context.first;
         string r = context.second;
 
-        //TODO find a better way to get the four strings (ObservationTable::MakeConsistent)
+        //TODO maybe find a better way to get the four strings (ObservationTable::MakeConsistent)
         for (string u1 : this->K) {
             for (string u2 : this->K) {
                 for (string v1 : this->K) {
@@ -72,12 +72,7 @@ void ObservationTable::MakeConsistent()
                             } else {
                                 f = make_pair(l + u1, r);
                             }
-                            this->F.insert(f);
-
-                            // Increase D and fill in the observation table;
-                            for (string k : this->KK) {
-                                this->insert(f, k);
-                            }
+                            this->_addContext(f);
 
                         } // end if
                     }
@@ -89,32 +84,19 @@ void ObservationTable::MakeConsistent()
 
 ContextFreeGrammar ObservationTable::MakeGrammar()
 {
-    map<ContextSet, set<string>> equivalenceClasses; // map(distribution: set of strings)
+    this->build();
+    this->MakeConsistent();
 
-    // Divide K into equivalence classes according to \equiv F
-    for (string k : this->K) {
+    EquivalenceClasses equivalenceClasses = this->_getEquivalenceClasses();
+    map<ContextSet, NonTerminal> distributionNonTerminal; // map(distribution: non-terminal)
 
-        ContextSet distribution = this->_getDistributionByK(k);
-        auto equivalenceClass = equivalenceClasses.find(distribution);
-
-        if (equivalenceClass != equivalenceClasses.end()) { // Found
-            equivalenceClass->second.insert(k);
-        } else { // Not found
-            StringSet ks; // set of k strings
-            ks.insert(k);
-            equivalenceClasses.insert({ distribution, ks });
-        }
-    }
-
-
-    map<ContextSet, string> distributionNonTerminal; // map(distribution: non terminal)
-    map<string, string> lexicalRulesData; // map(string: non-terminal(s))
-    map<string, string> binaryRulesData; // map(non-terminal: string w)
     ContextFreeGrammar G;
 
+    map<string, NonTerminal> lexicalRulesData; // map(string: non-terminal)
+    map<NonTerminal, string> binaryRulesData;  // map(non-terminal: string w)
+
     // Let V be the set of these equivalence classes - set of non terminals
-    for (pair<ContextSet, set<string>> equivalenceClass : equivalenceClasses) {
-        string nonTerminal;
+    for (EquivalenceClass equivalenceClass : equivalenceClasses) {
 
         // Check if this equivalence class can generate a start symbol
         bool isStart = true;
@@ -125,22 +107,19 @@ ContextFreeGrammar ObservationTable::MakeGrammar()
         }
 
         // Create the non-terminal for this equivalence class
+        NonTerminal nonTerminal = isStart ? G.getStartSymbol() : G.getNonTerminalSymbol();
         if (isStart) {
-            nonTerminal = G.getStartSymbol();
             G.I.insert(nonTerminal);
-        } else {
-            nonTerminal = G.getNonTerminalSymbol();
         }
         G.V.insert(nonTerminal);
 
         // Compute lexical rules
         for (string w : equivalenceClass.second) {
 
-            // Remember distribution - non terminal mapping
             distributionNonTerminal.insert({ equivalenceClass.first, nonTerminal });
 
-            if (w == this->_lambda || this->_alphabet.in(w)) {
-                G.P.insert({ nonTerminal, w }); // N -> a
+            if (w == this->_lambda || this->_alphabet.in(w)) { // terminal or lambda
+                G.P.insert({ nonTerminal, Terminal(w) }); // N -> a
                 G.Sigma.insert(w);
                 lexicalRulesData.insert({ w, nonTerminal });
                 continue;
@@ -153,14 +132,21 @@ ContextFreeGrammar ObservationTable::MakeGrammar()
 
     // Compute binary rules
     if (binaryRulesData.size() > 0) {
-        for (pair<string, string> binaryRuleData : binaryRulesData) {
-            string rightSide;
-            for (char c : binaryRuleData.second) {
-                string s(1, c);
-                //TODO throw error message if no lexical rule is found having this string
-                rightSide += lexicalRulesData[s];
+        for (pair<NonTerminal, string> binaryRuleData : binaryRulesData) {
+            string s = binaryRuleData.second;
+            string s1 = s.substr(0, 1);
+            string s2 = s.substr(1, 1);
+
+            map<string, NonTerminal>::iterator elementL1 = lexicalRulesData.find(s1);
+            map<string, NonTerminal>::iterator elementL2 = lexicalRulesData.find(s2);
+            if (elementL1 == lexicalRulesData.end() || elementL2 == lexicalRulesData.end()) {
+                string message = "Lexical rule data not found for strings " + s1 + " and/or " + s2 + "!";
+                throw exception(message.c_str());
+                continue;
             }
-            G.P.insert({ binaryRuleData.first, rightSide });
+            NonTerminalNonTerminal nTnT(make_pair(NonTerminal(elementL1->second), NonTerminal(elementL2->second)));
+            G.P.insert(make_pair(binaryRuleData.first, nTnT));
+
             lexicalRulesData.insert({ binaryRuleData.second, binaryRuleData.first });
         }
     }
@@ -183,24 +169,32 @@ ContextFreeGrammar ObservationTable::MakeGrammar()
                 continue;
             }
 
-            string nonTerminal = nonTerminalPair->second;
+            NonTerminal nonTerminal = nonTerminalPair->second;
 
-            //TODO throw error message if no lexical rule is found having this string
-            G.P.insert({ nonTerminal, lexicalRulesData[k1] + lexicalRulesData[k2] });
+            map<string, NonTerminal>::iterator elementK1 = lexicalRulesData.find(k1);
+            map<string, NonTerminal>::iterator elementK2 = lexicalRulesData.find(k2);
+            if (elementK1 == lexicalRulesData.end() || elementK2 == lexicalRulesData.end()) {
+                string message = "Lexical rule data not found for strings " + k1 + " and/or " + k2 + "!";
+                throw exception(message.c_str());
+                continue;
+            }
+
+            NonTerminalNonTerminal nTnT(make_pair(NonTerminal(elementK1->second), NonTerminal(elementK2->second)));
+            G.P.insert({ nonTerminal, nTnT });
         }
     }
 
     return G;
 }
 
-void ObservationTable::addPositiveCounterExample(string w)
+void ObservationTable::addPositiveCounterExample(const string w)
 {
     // Add Sub(w) to K
     StringSet substrings = this->getSub(w);
     this->K.insert(substrings.begin(), substrings.end());
 }
 
-ObservationTable::StringSet ObservationTable::getSub(string w)
+ObservationTable::StringSet ObservationTable::getSub(const string w)
 {
     int c, i;
     int size = w.size();
@@ -215,25 +209,42 @@ ObservationTable::StringSet ObservationTable::getSub(string w)
     return stringSet;
 }
 
-ObservationTable::Context ObservationTable::FindContext(string X, Context f, string w)
+ObservationTable::Context ObservationTable::FindContext(const string X, const Context f, const string w)
 {
+    // Used by ObservationTable::AddContexts
+
     //TODO implement ObservationTable::FindContext
     return make_pair("", "b");
 }
 
-void ObservationTable::AddContexts(ContextFreeGrammar G, string w)
+void ObservationTable::AddContexts(const string w)
 {
+    ContextFreeGrammar G = this->MakeGrammar();
+
+    while (G.generates(w)) {
+        // Suppose S yields w for some S in I
+        // Find f
+        
+        //TODO
+        break;
+    }
+
     //TODO implement ObservationTable::AddContexts
     Context f = this->FindContext("S", make_pair("", ""), w);
+    this->_addContext(f);
+}
+
+void ObservationTable::_addContext(Context f)
+{
     this->F.insert(f);
 
-    // Increase D and fill in the observation table;
+    // Increase D and fill in the observation table
     for (string k : this->KK) {
         this->insert(f, k);
     }
 }
 
-ObservationTable::ContextSet ObservationTable::_getDistributionByK(string k)
+ObservationTable::ContextSet ObservationTable::_getDistributionByK(const string k)
 {
     ContextSet distribution;
     for (Context context : this->F) {
@@ -242,4 +253,24 @@ ObservationTable::ContextSet ObservationTable::_getDistributionByK(string k)
         }
     }
     return distribution;
+}
+
+ObservationTable::EquivalenceClasses ObservationTable::_getEquivalenceClasses()
+{
+    EquivalenceClasses equivalenceClasses;
+
+    // Divide K into equivalence classes according to \equiv F
+    for (string k : this->K) {
+        ContextSet distribution = this->_getDistributionByK(k);
+        auto equivalenceClass = equivalenceClasses.find(distribution);
+
+        if (equivalenceClass != equivalenceClasses.end()) { // Found
+            equivalenceClass->second.insert(k);
+        } else { // Not found
+            StringSet ks; // set of k strings
+            ks.insert(k);
+            equivalenceClasses.insert({ distribution, ks });
+        }
+    }
+    return equivalenceClasses;
 }

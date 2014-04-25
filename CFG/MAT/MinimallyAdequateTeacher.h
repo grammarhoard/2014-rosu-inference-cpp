@@ -1,20 +1,21 @@
 /*
  * Minimally Adequate Teacher (MAT)
- * ...
+ * Provides the learner two sources of information about the language
+ *     1. Membership queries  -> Mem()
+ *     2. Equivalence queries -> Equiv()
  */
-//TODO write description for MinimallyAdequateTeacher
 
-#include "ContextFreeLanguage.h"
+#include "Language.h"
 #include "ContextFreeGrammar.h"
 
 #pragma once
 class MinimallyAdequateTeacher
 {
 public:
-    MinimallyAdequateTeacher(ContextFreeLanguage L);
+    MinimallyAdequateTeacher(Language& L);
     ~MinimallyAdequateTeacher();
 
-    ContextFreeLanguage getLanguage();
+    Language& getLanguage();
 
     /*
      * Membership query (Oracle)
@@ -22,7 +23,7 @@ public:
      *     and false otherwise
      */
     //TODO maybe use just one parameter for MinimallyAdequateTeacher::Mem()
-    bool Mem(string l, string u, string r);
+    bool Mem(const string l, const string u, const string r);
 
     /*
      * Equivalence query
@@ -31,7 +32,7 @@ public:
      * If the grammar is incorrect, a counter-example is available
      *     by calling getCounterExample()
      */
-    bool Equiv(ContextFreeGrammar G);
+    bool Equiv(const ContextFreeGrammar& G);
 
     /*
      * After checking if the grammar is correct or not,
@@ -40,6 +41,6 @@ public:
     string getCounterExample();
 
 private:
-    ContextFreeLanguage _L;
+    Language& _L;
     string _counterExample;
 };
