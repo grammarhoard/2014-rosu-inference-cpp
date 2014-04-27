@@ -4,11 +4,11 @@
  *     1. Membership queries  -> Mem()
  *     2. Equivalence queries -> Equiv()
  */
+#pragma once
 
 #include "Language.h"
 #include "ContextFreeGrammar.h"
 
-#pragma once
 class MinimallyAdequateTeacher
 {
 public:

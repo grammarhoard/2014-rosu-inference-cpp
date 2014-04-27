@@ -17,8 +17,3 @@ bool ProductionRight::operator < (const ProductionRight& productionRight) const
 {
     return this->_name < productionRight.getName();
 }
-
-bool ProductionRight::operator == (const ProductionRight& productionRight) const
-{
-    return this->getName() == productionRight.getName();
-}

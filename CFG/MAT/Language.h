@@ -1,10 +1,10 @@
 /*
  * The language that needs to be learned -> L
  */
+#pragma once
 
 #include "Alphabet.h"
 
-#pragma once
 class Language
 {
 public:

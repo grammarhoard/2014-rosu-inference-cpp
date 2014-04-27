@@ -9,6 +9,7 @@
  * Note: it is objective because is not the standard version
  *     - now we allow multiple start symbols and we allow the alphabet Sigma to be empty
  */
+#pragma once
 
 #include <string>
 #include <list>
@@ -19,16 +20,15 @@
 #include "ContextFreeLanguage.h"
 #include "Terminal.h"
 #include "NonTerminal.h"
+#include "NonTerminalNonTerminal.h"
 #include "ProductionRight.h"
 
 using namespace std;
 
-#pragma once
 class ContextFreeGrammar
 {
 public:
-    //TODO maybe use objects instead of strings for terminals / non-terminals
-    typedef pair<NonTerminal, ProductionRight> Production; // pair (left, right)
+    typedef pair<NonTerminal, ProductionRight*> Production; // pair (left, right)
 
     set<Terminal>    Sigma; // finite non-empty alphabet of terminal symbols
     set<NonTerminal> V;     // set of non terminals
@@ -59,14 +59,14 @@ public:
      * Returns true if the non-terminal can lead to generating w,
      *     and false otherwise
      */
-    bool yields(NonTerminal nonTerminal, const string w);
+    bool yields(const NonTerminal& nonTerminal, const string w);
 
     /*
      * CYK Algorithm - decide if a string is in a L(G) defined by this grammar G
      * Returns true if the string is in the language,
      *     and false otherwise
      */
-    bool cykYields(NonTerminal nonTerminal, const string w);
+    bool cykYields(const NonTerminal& nonTerminal, const string w);
 
 private:
     const string _startSymbol      = "S";

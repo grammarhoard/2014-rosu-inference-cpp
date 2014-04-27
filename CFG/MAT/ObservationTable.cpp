@@ -119,8 +119,8 @@ ContextFreeGrammar ObservationTable::MakeGrammar()
             distributionNonTerminal.insert({ equivalenceClass.first, nonTerminal });
 
             if (w == this->_lambda || this->_alphabet.in(w)) { // terminal or lambda
-                G.P.insert({ nonTerminal, Terminal(w) }); // N -> a
-                G.Sigma.insert(w);
+                G.P.insert({ nonTerminal, new Terminal(w) }); // N -> a
+                G.Sigma.insert(Terminal(w));
                 lexicalRulesData.insert({ w, nonTerminal });
                 continue;
             }
@@ -144,8 +144,9 @@ ContextFreeGrammar ObservationTable::MakeGrammar()
                 throw exception(message.c_str());
                 continue;
             }
-            NonTerminalNonTerminal nTnT(make_pair(NonTerminal(elementL1->second), NonTerminal(elementL2->second)));
+            NonTerminalNonTerminal* nTnT = new NonTerminalNonTerminal(make_pair(elementL1->second, elementL2->second));
             G.P.insert(make_pair(binaryRuleData.first, nTnT));
+            // delete nTnT;
 
             lexicalRulesData.insert({ binaryRuleData.second, binaryRuleData.first });
         }
@@ -179,8 +180,9 @@ ContextFreeGrammar ObservationTable::MakeGrammar()
                 continue;
             }
 
-            NonTerminalNonTerminal nTnT(make_pair(NonTerminal(elementK1->second), NonTerminal(elementK2->second)));
+            NonTerminalNonTerminal* nTnT = new NonTerminalNonTerminal(make_pair(elementK1->second, elementK2->second));
             G.P.insert({ nonTerminal, nTnT });
+            // delete nTnT;
         }
     }
 
@@ -209,29 +211,40 @@ ObservationTable::StringSet ObservationTable::getSub(const string w)
     return stringSet;
 }
 
-ObservationTable::Context ObservationTable::FindContext(const string X, const Context f, const string w)
+ObservationTable::Context ObservationTable::FindContext(const NonTerminal X, const Context f, const string w)
 {
     // Used by ObservationTable::AddContexts
 
-    //TODO implement ObservationTable::FindContext
+    // if f splits X then return f
+
+
+
+    //TODO implement ObservationTable::FindContext()
     return make_pair("", "b");
 }
 
 void ObservationTable::AddContexts(const string w)
 {
+    // The string w is not in L
     ContextFreeGrammar G = this->MakeGrammar();
+    bool generates = G.generates(w);
 
-    while (G.generates(w)) {
+    //TODO maybe: the algorithm is with while do and we have do while, check again if you need it that way
+    do {
         // Suppose S yields w for some S in I
-        // Find f
-        
-        //TODO
-        break;
-    }
+        for (NonTerminal nonTerminal : G.I) {
+            if (!G.yields(nonTerminal, w)) {
+                continue;
+            }
 
-    //TODO implement ObservationTable::AddContexts
-    Context f = this->FindContext("S", make_pair("", ""), w);
-    this->_addContext(f);
+            Context f = this->FindContext(nonTerminal, make_pair(this->_lambda, this->_lambda), w);
+            this->_addContext(f);
+            ContextFreeGrammar G = this->MakeGrammar();
+            generates = G.generates(w);
+            break;
+        }
+
+    } while (generates);
 }
 
 void ObservationTable::_addContext(Context f)

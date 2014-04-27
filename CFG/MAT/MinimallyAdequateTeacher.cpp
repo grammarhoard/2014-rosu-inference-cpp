@@ -20,7 +20,7 @@ bool MinimallyAdequateTeacher::Mem(const string l, const string u, const string 
 
 bool MinimallyAdequateTeacher::Equiv(const ContextFreeGrammar& G)
 {
-    //TODO implement MinimallyAdequateTeacher::Equiv
+    //TODO implement MinimallyAdequateTeacher::Equiv()
     if (this->_counterExample == "") {
         this->_counterExample = "ab";
     } else if (this->_counterExample == "ab") {

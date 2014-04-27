@@ -6,6 +6,7 @@
  *    F - a non-empty finite set of contexts
  *    D - a set of grammatical strings in F \odot KK (finite function mapping to {false, true})
  */
+#pragma once
 
 #include <string>
 #include <set>
@@ -15,14 +16,14 @@
 #include "MinimallyAdequateTeacher.h"
 #include "ContextFreeLanguage.h"
 #include "ContextFreeGrammar.h"
+
 #include "Terminal.h"
 #include "NonTerminal.h"
-#include "ProductionRight.h"
 #include "NonTerminalNonTerminal.h"
+#include "ProductionRight.h"
 
 using namespace std;
 
-#pragma once
 class ObservationTable
 {
 public:
@@ -94,7 +95,7 @@ public:
      * Algorithm 3
      * Returns a context that splits some category X of grammar G
      */
-    Context FindContext(const string X, const Context f, const string w);
+    Context FindContext(const NonTerminal X, const Context f, const string w);
 
     /*
      * Algorithm 4

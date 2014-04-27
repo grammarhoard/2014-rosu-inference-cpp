@@ -1,9 +1,9 @@
+#pragma once
 #include <set>
 #include <string>
 
 using namespace std;
 
-#pragma once
 class Alphabet
 {
 public:

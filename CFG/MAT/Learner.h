@@ -3,6 +3,7 @@
  *     1. the learner can ask membership queries
  *     2. the learner can ask equivalence queries
  */
+#pragma once
 
 #include "MinimallyAdequateTeacher.h"
 #include "Language.h"
@@ -10,7 +11,6 @@
 #include "ContextFreeGrammar.h"
 #include "ContextFreeLanguage.h"
 
-#pragma once
 class Learner
 {
 public:

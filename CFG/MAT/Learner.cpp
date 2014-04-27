@@ -16,7 +16,7 @@ ContextFreeGrammar Learner::LearnCFG()
 
     observationTable.K.insert(lambda);
 
-    //TODO maybe not sure if the alphabet of the language L should be included in K (Learner::LearnCFG())
+    //TODO maybe: not sure if the alphabet of the language L should be included in K (Learner::LearnCFG())
     // set<string> alphabetSet = this->_mat.getLanguage().getAlphabet().get();
     // observationTable.K.insert(alphabetSet.begin(), alphabetSet.end());
 
