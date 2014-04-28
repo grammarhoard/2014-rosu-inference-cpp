@@ -18,7 +18,6 @@
 #include <vector>
 #include <utility>
 
-#include "ContextFreeLanguage.h"
 #include "Terminal.h"
 #include "NonTerminal.h"
 #include "NonTerminalNonTerminal.h"
@@ -30,9 +29,11 @@ class ContextFreeGrammar
 {
 public:
     typedef pair<NonTerminal, ProductionRight*> Production; // pair(left, right)
+
     typedef pair<pair<NonTerminal, NonTerminalNonTerminal>,
         pair<string, string>> Derivation; // pair(production, pair(left substring, right substring))
     typedef map<string, set<Derivation>> Derivations;
+
     typedef pair<NonTerminal, set<string>> EquivalenceClass;
     typedef map<NonTerminal, set<string>> EquivalenceClasses;
 
@@ -40,20 +41,19 @@ public:
     set<NonTerminal> V;     // set of non terminals
     set<Production>  P;     // set of productions
     set<NonTerminal> I;     // set of initial symbols
-
-    EquivalenceClasses equivalenceClasses;
+    EquivalenceClasses equivalenceClasses; // map(non-terminal, equivalence class)
 
     ContextFreeGrammar();
     ~ContextFreeGrammar();
 
     /*
-     * Returns the start symbol (S)
+     * Returns an unique start symbol (S, S1, S2, ...)
      * Note: We allow multiple start symbols
      */
     NonTerminal getStartSymbol();
 
     /*
-     * Returns an unique non-terminal symbol
+     * Returns an unique non-terminal symbol (A, B, ..., Z, A1, B1, ...)
      */
     NonTerminal getNonTerminalSymbol();
 
@@ -64,27 +64,22 @@ public:
     bool generates(const string w);
 
     /*
-     * Returns true if the non-terminal can lead to generating w,
-     *     and false otherwise
-     */
-    bool yields(const NonTerminal& nonTerminal, const string w);
-
-    /*
      * CYK Algorithm - decide if a string is in a L(G) defined by this grammar G
-     * Returns true if the string is in the language,
+     * Returns true if the string is in the language L(G),
      *     and false otherwise
-     * If the return value is true, it also populates this->_derivations
+     * If the return value is true, the derivations are available
+     *     by calling getDerivationsByString(w)
      */
     bool cykYields(const NonTerminal& nonTerminal, const string w);
 
     /*
      * Get the derivations found by last cykYields(X, w) run
      */
-    set<Derivation> getDerivations(const string w);
+    set<Derivation> getDerivationsByString(const string w);
 
 private:
-    const string _startSymbol      = "S";
-    unsigned _startSymbolIncrement = 0;
+    const string _startSymbol        = "S";
+    unsigned _startSymbolIncrement   = 0;
 
     char _currentChar                = 'A';
     unsigned _currentSymbolIncrement = 0;

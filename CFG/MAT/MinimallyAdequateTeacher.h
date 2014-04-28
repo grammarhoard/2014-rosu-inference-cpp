@@ -22,7 +22,6 @@ public:
      * Returns true if the given string is in the language,
      *     and false otherwise
      */
-    //TODO maybe use just one parameter for MinimallyAdequateTeacher::Mem()
     bool Mem(const string l, const string u, const string r);
 
     /*

@@ -14,7 +14,6 @@
 #include <utility>
 
 #include "MinimallyAdequateTeacher.h"
-#include "ContextFreeLanguage.h"
 #include "ContextFreeGrammar.h"
 
 #include "Terminal.h"
@@ -28,28 +27,26 @@ class ObservationTable
 {
 public:
     typedef set<string> StringSet;
-    typedef set<string> GrammaticalStringSet;
 
-    typedef pair<string, string> Context;          // pair of strings (l, r)
+    typedef pair<string, string> Context; // pair of strings (l, r)
     typedef set<Context> ContextSet;
 
-    typedef map<string, map<Context, bool>> Table; // map(string k: (Context f, value))
+    typedef map<string, map<Context, bool>> Table; // map(string k: (Context f, true or false))
 
     typedef pair<ContextSet, StringSet> EquivalenceClass;  // pair(distribution, set of strings)
     typedef map<ContextSet, StringSet> EquivalenceClasses; // map(distribution: set of strings)
 
-    StringSet            K;  // non-empty finite set of strings
-    ContextSet           F;  // non-empty finite set of contexts
-    GrammaticalStringSet D;  // in the finite function mapping F \odot KK to {0, 1}
-
-    StringSet            KK; // the Cartesian product between K and itself (K x K)
+    StringSet  K;  // non-empty finite set of strings
+    StringSet  KK; // the Cartesian product between K and itself (K x K)
+    ContextSet F;  // non-empty finite set of contexts
+    StringSet  D;  // in the finite function mapping F \odot KK to {0, 1}
 
     ObservationTable(MinimallyAdequateTeacher& mat);
     ~ObservationTable();
 
     /*
-    * Compute the Cartesian product K x K
-    */
+     * Compute the Cartesian product K x K and save it in KK
+     */
     void computeKK();
 
     /*
@@ -63,7 +60,8 @@ public:
     void build();
 
     /*
-     * Returns true if they appear in the same set of contexts F
+     * Returns true if they appear in the same set of contexts F,
+     *     and false otherwise
      */
     bool equivalent(const string u, const string v);
 
@@ -75,8 +73,8 @@ public:
 
     /*
      * Algorithm 2
-     * Constructs a grammar from the observation table in polynomial time
-     *     returns a valid Context Free Grammar
+     * Constructs a grammar from the observation table in polynomial time and
+     *     returns it
      */
     ContextFreeGrammar MakeGrammar();
 
@@ -92,21 +90,26 @@ public:
     StringSet getSub(const string w);
 
     /*
-     * Returns true if there are u, v in X such that lux in L and lvx not in L
+     * Returns true if context f can split category X
+     *     (there are u, v in X such that lux in L and lvx not in L), and
+     *     false otherwise
      */
-    bool contextSplitsCategory(const Context f, const NonTerminal X);
+    bool contextSplitsCategory(ContextFreeGrammar& G,
+        const Context f, const NonTerminal X);
 
     /*
      * Algorithm 3
      * Returns a context that splits some category X of grammar G
      */
-    Context FindContext(const NonTerminal X, const Context f, const string w);
+    Context FindContext(ContextFreeGrammar& G,
+        const NonTerminal X, const Context f, const string w);
 
     /*
      * Algorithm 4
-     * Add contexts until the derived grammar no longer generates string w (string that is not in L)
+     * Add contexts until the derived grammar no longer generates string w
+     * w is not in L
      */
-    void AddContexts(const string w);
+    void AddContexts(ContextFreeGrammar& G, const string w);
 
 private:
     MinimallyAdequateTeacher& _mat;
@@ -127,16 +130,16 @@ private:
     /*
      * Returns the equivalence classes of K under \odot F
      */
-    EquivalenceClasses _getEquivalenceClasses();
+    EquivalenceClasses _getEquivalenceClassesK();
 
     /*
-     * Returns the categories (equivalence classes of KK under \odot F that contain at least one element of K)
+     * Returns the equivalence classes of KK under \odot F
      */
-    //TODO rename ObservationTable:_getCategories()
-    EquivalenceClasses _getCategories();
+    EquivalenceClasses _getEquivalenceClassesKK();
 
     /*
-     * Returns a pair of strings u', v' in K such that u' in Y, v' in Z and u' v' in X
+     * Returns a pair of strings u', v' in K such that u' in Y, v' in Z and u'v' in X
      */
-    pair<string, string> _getStringPair(NonTerminal Y, NonTerminal Z, NonTerminal X);
+    pair<string, string> _getStringPair(ContextFreeGrammar& G,
+        NonTerminal Y, NonTerminal Z, NonTerminal X);
 };

@@ -13,6 +13,10 @@ class NonTerminalNonTerminal;
 class ProductionRight
 {
 public:
+
+    /*
+     * A name in needed in order to implement operator < (used by the set constructor)
+     */
     ProductionRight(const string name);
     virtual ~ProductionRight();
 
@@ -34,5 +38,5 @@ public:
     virtual bool equals(const NonTerminalNonTerminal& nonTerminalNonTerminal) const = 0;
 
 private:
-    const string _name;
+    string _name;
 };

@@ -16,7 +16,7 @@ ContextFreeGrammar Learner::LearnCFG()
 
     observationTable.K.insert(lambda);
 
-    //TODO maybe: not sure if the alphabet of the language L should be included in K (Learner::LearnCFG())
+    //TODO maybe: Check if the alphabet of the language L should be included in K (Learner::LearnCFG())
     // set<string> alphabetSet = this->_mat.getLanguage().getAlphabet().get();
     // observationTable.K.insert(alphabetSet.begin(), alphabetSet.end());
 
@@ -37,7 +37,7 @@ ContextFreeGrammar Learner::LearnCFG()
         if (!G.generates(w)) { // Not found -> w is not in L(G)
             observationTable.addPositiveCounterExample(w);
         } else {
-            observationTable.AddContexts(w);
+            observationTable.AddContexts(G, w);
         }
     }
 }

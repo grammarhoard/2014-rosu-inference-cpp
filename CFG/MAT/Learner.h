@@ -9,7 +9,6 @@
 #include "Language.h"
 #include "ObservationTable.h"
 #include "ContextFreeGrammar.h"
-#include "ContextFreeLanguage.h"
 
 class Learner
 {
