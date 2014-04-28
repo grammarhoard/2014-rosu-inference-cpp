@@ -21,7 +21,7 @@ bool Language::in(const string element)
         return true;
     }
 
-    //TODO implement ContextFreeLanguage::in()
+    //TODO implement Language::in()
     if (element == "ab" || element == "abab" || element == "aabb") {
         // ... and so on -> this is an infinite non-linear context-free language
         return true;

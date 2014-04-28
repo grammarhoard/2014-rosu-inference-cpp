@@ -2,6 +2,7 @@
 #include "Language.h"
 #include "MinimallyAdequateTeacher.h"
 #include "Learner.h"
+#include "ContextFreeGrammar.h"
 
 int main()
 {
@@ -16,7 +17,7 @@ int main()
 
     // Learn the grammar
     Learner learner(mat);
-    learner.LearnCFG();
+    ContextFreeGrammar grammar = learner.LearnCFG();
 
     return 0;
 }

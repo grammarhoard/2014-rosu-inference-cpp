@@ -54,6 +54,15 @@ bool ContextFreeGrammar::cykYields(const NonTerminal& nonTerminal, const string 
     const size_t length = w.size();
     vector<vector<set<NonTerminal>>> M(length, vector<set<NonTerminal>>(length));
 
+    // Clear old derivations
+    auto der = this->_derivations.find(w);
+    if (der == this->_derivations.end()) { // Not found
+        set<Derivation> derivations;
+        this->_derivations.insert({ w, derivations });
+    } else {
+        der->second.clear();
+    }
+
     for (i = 0; i < length; i++) {
         exists = false;
         s = w.substr(i, 1);
@@ -72,7 +81,6 @@ bool ContextFreeGrammar::cykYields(const NonTerminal& nonTerminal, const string 
     for (l = 1; l < length; l++) { // every substring length
         for (r = 0; r < length - l; r++) { // every starting location for a substring of length l
             for (t = 0; t < l; t++) { // every split of the substring at s[r:r+l]
-                s = w.substr(r, r + t + 1);
                 set<NonTerminal> & L = M[r][r + t]; // all non-terminals generating s[r:r+t]
                 set<NonTerminal> & R = M[r + t + 1][r + l];
 
@@ -84,6 +92,15 @@ bool ContextFreeGrammar::cykYields(const NonTerminal& nonTerminal, const string 
                         for (Production production : this->P) {
                             if (production.second->equals(nTnT)) {
                                 M[r][r + l].insert(production.first);
+
+                                // Save the derivation
+                                if (r == 0 && r + l == length - 1 && production.first.equals(nonTerminal)) {
+                                    string sL = w.substr(r, r + t - (r)+1);
+                                    string sR = w.substr(r + t + 1, r + l - (r + t + 1) + 1);
+
+                                    this->_derivations.find(w)->second.insert(
+                                        make_pair(make_pair(production.first, make_pair(B, C)), make_pair(sL, sR)));
+                                }
                             }
                         }
                     }
@@ -98,4 +115,9 @@ bool ContextFreeGrammar::cykYields(const NonTerminal& nonTerminal, const string 
     }
 
     return false;
+}
+
+set<ContextFreeGrammar::Derivation> ContextFreeGrammar::getDerivations(const string w)
+{
+    return this->_derivations.find(w)->second;
 }

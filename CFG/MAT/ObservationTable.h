@@ -92,6 +92,11 @@ public:
     StringSet getSub(const string w);
 
     /*
+     * Returns true if there are u, v in X such that lux in L and lvx not in L
+     */
+    bool contextSplitsCategory(const Context f, const NonTerminal X);
+
+    /*
      * Algorithm 3
      * Returns a context that splits some category X of grammar G
      */
@@ -119,5 +124,19 @@ private:
      */
     ContextSet _getDistributionByK(const string k);
 
+    /*
+     * Returns the equivalence classes of K under \odot F
+     */
     EquivalenceClasses _getEquivalenceClasses();
+
+    /*
+     * Returns the categories (equivalence classes of KK under \odot F that contain at least one element of K)
+     */
+    //TODO rename ObservationTable:_getCategories()
+    EquivalenceClasses _getCategories();
+
+    /*
+     * Returns a pair of strings u', v' in K such that u' in Y, v' in Z and u' v' in X
+     */
+    pair<string, string> _getStringPair(NonTerminal Y, NonTerminal Z, NonTerminal X);
 };

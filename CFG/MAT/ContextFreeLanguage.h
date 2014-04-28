@@ -13,10 +13,4 @@ class ContextFreeLanguage
 public:
     ContextFreeLanguage();
     ~ContextFreeLanguage();
-
-    /*
-     * Returns true if the element is in the language,
-     *     and false otherwise
-     */
-    bool in(string element);
 };

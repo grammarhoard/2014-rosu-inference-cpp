@@ -17,3 +17,8 @@ bool NonTerminal::operator < (const NonTerminal& nonTerminal) const
 {
     return this->_name < nonTerminal.getName();
 }
+
+bool NonTerminal::equals(const NonTerminal& nonTerminal) const
+{
+    return this->_name == nonTerminal.getName();
+}

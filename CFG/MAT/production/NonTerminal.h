@@ -16,6 +16,11 @@ public:
      */
     bool operator < (const NonTerminal& nonTerminal) const;
 
+    /*
+     * Compares the names of the two non-terminals
+     */
+    bool equals(const NonTerminal& nonTerminal) const;
+
 private:
     string _name;
 };

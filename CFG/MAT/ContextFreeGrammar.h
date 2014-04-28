@@ -14,6 +14,7 @@
 #include <string>
 #include <list>
 #include <set>
+#include <map>
 #include <vector>
 #include <utility>
 
@@ -28,12 +29,19 @@ using namespace std;
 class ContextFreeGrammar
 {
 public:
-    typedef pair<NonTerminal, ProductionRight*> Production; // pair (left, right)
+    typedef pair<NonTerminal, ProductionRight*> Production; // pair(left, right)
+    typedef pair<pair<NonTerminal, NonTerminalNonTerminal>,
+        pair<string, string>> Derivation; // pair(production, pair(left substring, right substring))
+    typedef map<string, set<Derivation>> Derivations;
+    typedef pair<NonTerminal, set<string>> EquivalenceClass;
+    typedef map<NonTerminal, set<string>> EquivalenceClasses;
 
     set<Terminal>    Sigma; // finite non-empty alphabet of terminal symbols
     set<NonTerminal> V;     // set of non terminals
     set<Production>  P;     // set of productions
     set<NonTerminal> I;     // set of initial symbols
+
+    EquivalenceClasses equivalenceClasses;
 
     ContextFreeGrammar();
     ~ContextFreeGrammar();
@@ -65,8 +73,14 @@ public:
      * CYK Algorithm - decide if a string is in a L(G) defined by this grammar G
      * Returns true if the string is in the language,
      *     and false otherwise
+     * If the return value is true, it also populates this->_derivations
      */
     bool cykYields(const NonTerminal& nonTerminal, const string w);
+
+    /*
+     * Get the derivations found by last cykYields(X, w) run
+     */
+    set<Derivation> getDerivations(const string w);
 
 private:
     const string _startSymbol      = "S";
@@ -74,4 +88,6 @@ private:
 
     char _currentChar                = 'A';
     unsigned _currentSymbolIncrement = 0;
+
+    Derivations _derivations;
 };

@@ -88,6 +88,9 @@ ContextFreeGrammar ObservationTable::MakeGrammar()
     this->MakeConsistent();
 
     EquivalenceClasses equivalenceClasses = this->_getEquivalenceClasses();
+
+    //TODO change this->_getCategories() to this->_getFullEquivalenceClasses()
+    EquivalenceClasses fullEquivalenceClasses = this->_getCategories();
     map<ContextSet, NonTerminal> distributionNonTerminal; // map(distribution: non-terminal)
 
     ContextFreeGrammar G;
@@ -112,6 +115,10 @@ ContextFreeGrammar ObservationTable::MakeGrammar()
             G.I.insert(nonTerminal);
         }
         G.V.insert(nonTerminal);
+        // G.equivalenceClasses.insert({nonTerminal, equivalenceClass.second});
+        //TODO find a better way to combine equivalenceClasses with fullEquivalenceClasses
+        G.equivalenceClasses.insert({ nonTerminal, fullEquivalenceClasses.find(equivalenceClass.first)->second });
+        //TODO tie V.insert and equivalenceClasses.insert together
 
         // Compute lexical rules
         for (string w : equivalenceClass.second) {
@@ -211,16 +218,71 @@ ObservationTable::StringSet ObservationTable::getSub(const string w)
     return stringSet;
 }
 
+bool ObservationTable::contextSplitsCategory(const Context f, const NonTerminal X)
+{
+    //TODO avoid making the grammar in every method
+    ContextFreeGrammar G = this->MakeGrammar();
+    StringSet equivalenceClasses = G.equivalenceClasses.find(X)->second;
+
+    string l = f.first;
+    string r = f.second;
+
+    for (string u : equivalenceClasses) {
+        for (string v : equivalenceClasses) {
+            if (u == v) {
+                continue;
+            }
+
+            if (this->_mat.Mem(l, u, r) && !this->_mat.Mem(l, v, r)) {
+                // This context splits this category
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 ObservationTable::Context ObservationTable::FindContext(const NonTerminal X, const Context f, const string w)
 {
     // Used by ObservationTable::AddContexts
 
     // if f splits X then return f
+    if (this->contextSplitsCategory(f, X)) {
+        return f;
+    }
 
+    // w is not congruent with the strings in X
 
+    //TODO avoid making the grammar in every method
+    ContextFreeGrammar G = this->MakeGrammar();
+    EquivalenceClasses categories = this->_getCategories();
+    string l = f.first;
+    string r = f.second;
+    if (G.cykYields(X, w)) {
+        set<ContextFreeGrammar::Derivation> derivations = G.getDerivations(w);
 
-    //TODO implement ObservationTable::FindContext()
-    return make_pair("", "b");
+        // Let X -> YZ yields uv = w be a derivation of w such that Y yields u and Z yields v
+        for (ContextFreeGrammar::Derivation derivation: derivations) {
+            string u = derivation.second.first;
+            string v = derivation.second.second;
+            NonTerminal Y = derivation.first.second.getPair().first;
+            NonTerminal Z = derivation.first.second.getPair().second;
+
+            // Find a pair of strings u', v' in K such that u' in Y, v' in Z and u' v' in X
+            pair<string, string> stringPair = this->_getStringPair(Y, Z, X);
+            string u1 = stringPair.first;
+            string v1 = stringPair.second;
+
+            if (this->_mat.Mem(f.first, u1 + v, f.second)) {
+                return this->FindContext(Y, make_pair(l, v + r), u);
+            } else {
+                return this->FindContext(Z, make_pair(l + u1, r), v);
+            }
+        }
+    }
+
+    throw exception("No context found!");
 }
 
 void ObservationTable::AddContexts(const string w)
@@ -286,4 +348,47 @@ ObservationTable::EquivalenceClasses ObservationTable::_getEquivalenceClasses()
         }
     }
     return equivalenceClasses;
+}
+
+ObservationTable::EquivalenceClasses ObservationTable::_getCategories()
+{
+    EquivalenceClasses equivalenceClasses;
+
+    // Divide KK into equivalence classes according to \equiv F
+    for (string kk : this->KK) {
+        ContextSet distribution = this->_getDistributionByK(kk);
+        auto equivalenceClass = equivalenceClasses.find(distribution);
+
+        if (equivalenceClass != equivalenceClasses.end()) { // Found
+            equivalenceClass->second.insert(kk);
+        } else { // Not found
+            StringSet kks; // set of k strings
+            kks.insert(kk);
+            equivalenceClasses.insert({ distribution, kks });
+        }
+    }
+
+    //TODO remove equivalence classes that do not have at least one element from K
+    return equivalenceClasses;
+}
+
+pair<string, string> ObservationTable::_getStringPair(NonTerminal Y, NonTerminal Z, NonTerminal X)
+{
+    //TODO avoid making the grammar in every method
+    ContextFreeGrammar G = this->MakeGrammar();
+    // Find a pair of strings u', v' in K such that u' in Y, v' in Z and u' v' in X
+    //TODO find a better way to compute the string pair
+    for (string k1 : this->K) {
+        for (string k2 : this->K) {
+            //HACK find out if it is a good thing to ignore lambda strings
+            if (k1 == this->_lambda || k2 == this->_lambda) {
+                continue;
+            }
+            if (G.yields(Y, k1) && G.yields(Z, k2) && G.yields(X, k1 + k2)) {
+                return make_pair(k1, k2);
+            }
+        }
+    }
+
+    throw exception("No suitable pairs of strings found for this combination");
 }
