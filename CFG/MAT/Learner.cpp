@@ -25,19 +25,5 @@ ContextFreeGrammar Learner::LearnCFG()
         observationTable.D.insert(lambda);
     }
 
-    while (true) {
-        ContextFreeGrammar G = observationTable.MakeGrammar();
-
-        if (this->_mat.Equiv(G)) {
-            return G;
-        }
-        string w = this->_mat.getCounterExample();
-
-        // Query the current language L(G)
-        if (!G.generates(w)) { // Not found -> w is not in L(G)
-            observationTable.addPositiveCounterExample(w);
-        } else {
-            observationTable.AddContexts(G, w);
-        }
-    }
+    return observationTable.LearnCFG();
 }

@@ -4,6 +4,9 @@
 #include "Learner.h"
 #include "ContextFreeGrammar.h"
 
+#include <iostream>
+using namespace std;
+
 int main()
 {
     // Build alphabet Sigma, which is known
@@ -13,11 +16,20 @@ int main()
 
     // Setup the Minimally Adequate Teacher
     Language language(alphabet);
-    MinimallyAdequateTeacher mat(language);
+    // language.addSample("ab");
+    // language.addSample("abab");
+    // language.addSample("aabb");
 
-    // Learn the grammar
-    Learner learner(mat);
-    ContextFreeGrammar grammar = learner.LearnCFG();
+    try {
+        language.addSampleFromFile("D://Master Thesis//Sources//Thesis Cpp//CFG//samples//sample0.txt");
+        MinimallyAdequateTeacher mat(language);
 
-    return 0;
+        // Learn the grammar
+        Learner learner(mat);
+        ContextFreeGrammar grammar = learner.LearnCFG();
+
+        return 0;
+    } catch(exception exception) {
+        cout << exception.what();
+    }
 }

@@ -45,6 +45,18 @@ public:
     ~ObservationTable();
 
     /*
+     * Learn the Context Free Grammar and returns it
+     */
+    ContextFreeGrammar LearnCFG();
+
+    /*
+     * Equivalence Oracle
+     * It is implemented here and not in Minimally Adequate Teacher because,
+     *     in order to prevent overgeneration, we need information from the observation table
+     */
+    bool Equiv(ContextFreeGrammar& G);
+
+    /*
      * Compute the Cartesian product K x K and save it in KK
      */
     void computeKK();
@@ -64,6 +76,12 @@ public:
      *     and false otherwise
      */
     bool equivalent(const string u, const string v);
+
+    /*
+     * Returns true if they have the same distribution over L,
+     *     and false otherwise
+     */
+    bool congruent(const string u, const string v);
 
     /*
      * Algorithm 1
@@ -113,6 +131,8 @@ public:
 
 private:
     MinimallyAdequateTeacher& _mat;
+    string _counterExample;
+    bool _counterExampleIsUndergeneration;
     Alphabet& _alphabet;
     const string _lambda;
     Table _table;
@@ -121,6 +141,11 @@ private:
      * Add Context f, increase D and fill in the observation table
      */
     void _addContext(Context f);
+
+    /*
+     * Get the set of all contexts of a string w over L
+     */
+    ContextSet _getDistribution(const string w);
 
     /*
      * Get the set of all contexts of a string k, such that lkr in L

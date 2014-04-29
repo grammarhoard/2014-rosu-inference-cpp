@@ -10,6 +10,85 @@ ObservationTable::~ObservationTable()
 {
 }
 
+ContextFreeGrammar ObservationTable::LearnCFG()
+{
+    while (true) {
+        ContextFreeGrammar G = this->MakeGrammar();
+
+        if (this->Equiv(G)) {
+            return G;
+        }
+        string w = this->_counterExample;
+
+        // Query the current language L(G)
+        if (this->_counterExampleIsUndergeneration) { // Not found -> w is not in L(G)
+            this->addPositiveCounterExample(w);
+        } else {
+            this->AddContexts(G, w);
+        }
+    }
+}
+
+bool ObservationTable::Equiv(ContextFreeGrammar& G)
+{
+    this->_counterExample = "";
+    this->_counterExampleIsUndergeneration = NULL;
+    // The learner provides the teacher with a hypothesis, and
+    //     the teacher will either confirm that it is correct, or
+    //     it will provide the learner with a counter - example
+
+    /* Info:
+    We have implemented the algorithm using a sampling approximation to the equivalence oracle.
+    More generally,
+    one can approximate the equivalence oracle by generating examples from a
+    fixed distribution or from both target and hypothesis grammars, either using a
+    probabilistic CFG or otherwise[15].
+
+    [2] Dana Angluin, "Learning regular sets from queries and counterexamples".
+    */
+
+    // Check if all of the strings in L can be generated with the grammar G (prevent undergeneration)
+    for (string s : this->_mat.getLanguage().getData()) {
+        if (!G.generates(s)) {
+            this->_counterExample = s;
+            this->_counterExampleIsUndergeneration = true;
+            return false;
+        }
+    }
+
+    // Check if grammar G does not generate more strings than L has (prevent overgeneration)
+
+    // If the partition of KK into classes is correct, then we will not overgeneralise
+    // If for any u, v in KK, we have that u equivalent with v implies that u congruent with v,
+    //     then we will not overgeneralise
+    // If we overgeneralise, then there must be two strings w1, w2 in KK that appear to be congruent but are not
+    //     so we need to add a feature/context to have a more fine division into classes
+    //     so that the two string w1 and w2 are in different classes
+
+    for (ContextFreeGrammar::EquivalenceClass equivalenceClass : G.equivalenceClasses) {
+        for (string u : equivalenceClass.second) {
+            for (string v : equivalenceClass.second) {
+                if (u == v) {
+                    continue;
+                }
+
+                // We already know that the strings are equivalent
+                //TODO how the fuck should you check if the strings are congruent?
+                // assuming you have the following strings in L: {ab, abab, aabb}
+
+                if (!this->congruent(u, v)) {
+                    //TODO generate counter example for overgeneration
+                    this->_counterExample = "aab";
+                    this->_counterExampleIsUndergeneration = false;
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
 void ObservationTable::computeKK()
 {
     this->KK.clear();
@@ -47,6 +126,12 @@ bool ObservationTable::equivalent(const string u, const string v)
         }
     }
     return true;
+}
+
+bool ObservationTable::congruent(const string u, const string v)
+{
+    // Two strings are congruent if and only if they have the same distribution over L
+    return this->_getDistribution(u) == this->_getDistribution(v);
 }
 
 void ObservationTable::MakeConsistent()
@@ -316,6 +401,25 @@ void ObservationTable::_addContext(Context f)
     for (string k : this->KK) {
         this->insert(f, k);
     }
+}
+
+ObservationTable::ContextSet ObservationTable::_getDistribution(const string w)
+{
+    ContextSet distribution;
+    string prefix, suffix;
+    size_t found;
+    size_t length = w.size();
+
+    for (string s : this->_mat.getLanguage().getData()) {
+        found = s.find(w);
+        while (found != string::npos) {
+            prefix = s.substr(0, found);
+            suffix = s.substr(found + length);
+            distribution.insert(make_pair(prefix, suffix));
+            found = s.find(w, found + 1);
+        }
+    }
+    return distribution;
 }
 
 ObservationTable::ContextSet ObservationTable::_getDistributionByK(const string k)

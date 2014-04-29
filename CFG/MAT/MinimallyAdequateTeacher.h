@@ -26,20 +26,10 @@ public:
 
     /*
      * Equivalence query
-     * Returns true if the grammar is correct,
-     *     and false otherwise
-     * If the grammar is incorrect, a counter-example is available
-     *     by calling getCounterExample()
+     * Implemented in Observation Table
      */
-    bool Equiv(const ContextFreeGrammar& G);
-
-    /*
-     * After checking if the grammar is correct or not,
-     *     this method returns the counter-example if the grammar is incorrect
-     */
-    string getCounterExample();
+    // bool Equiv(ContextFreeGrammar& G);
 
 private:
     Language& _L;
-    string _counterExample;
 };

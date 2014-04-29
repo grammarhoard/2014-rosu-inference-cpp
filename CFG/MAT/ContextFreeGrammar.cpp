@@ -36,6 +36,15 @@ NonTerminal ContextFreeGrammar::getNonTerminalSymbol()
 
 bool ContextFreeGrammar::generates(const string w)
 {
+    Terminal terminal(w);
+
+    // Check terminals
+    for (Production production : this->P) {
+        if (production.second->equals(terminal)) {
+            return true;
+        }
+    }
+
     for (NonTerminal nonTerminal : this->I) {
         if (this->cykYields(nonTerminal, w)) {
             return true;
