@@ -9,21 +9,12 @@ using namespace std;
 
 int main()
 {
-    // Build alphabet Sigma, which is known
-    Alphabet alphabet;
-    alphabet.insert(""); // lambda
-    alphabet.insert("a");
-    alphabet.insert("b");
-
-    // Setup the Minimally Adequate Teacher
-    Language language(alphabet);
-    // language.addSample("ab");
-    // language.addSample("abab");
-    // language.addSample("aabb");
-    // language.addSample("aababb");
-
     try {
-        language.addSampleFromFile("D://Master Thesis//Sources//Thesis Cpp//CFG//samples//sample0.txt");
+        // Setup language L
+        Language language;
+        language.addSampleFromFile("D://Master Thesis//Sources//Thesis Cpp//CFG//samples//sample1.txt");
+
+        // Setup the Minimally Adequate Teacher
         MinimallyAdequateTeacher mat(language);
 
         // Learn the grammar
@@ -32,6 +23,6 @@ int main()
 
         return 0;
     } catch(exception exception) {
-        cout << exception.what();
+        cout << exception.what() << endl;
     }
 }

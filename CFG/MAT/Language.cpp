@@ -4,9 +4,9 @@ const string Language::lambda = "";
 const int Language::_MAXSTRING = 1024;
 const set<string> Language::_NEWLINES {"\n", "\r"};
 
-Language::Language(Alphabet& alphabet) : _Sigma(alphabet)
+Language::Language()
 {
-    // this->_Sigma = Alphabet();
+    this->_Sigma = Alphabet();
     this->addSample(this->lambda);
 }
 
@@ -27,11 +27,20 @@ vector<string>& Language::getData()
 
 void Language::addSample(string sample)
 {
+    // Remove newlines
     for (string newLine: this->_NEWLINES) {
         if (sample.find(newLine) != string::npos) { // Found
             sample.erase(sample.size() - 1);
         }
     }
+
+    // Add characters to alphabet
+    for (char c : sample) {
+        string s(1, c);
+        this->_Sigma.insert(s);
+    }
+
+    // Add string to data
     if (find(this->_data.begin(), this->_data.end(), sample) == this->_data.end()) { // Not found
         this->_data.push_back(sample);
     }

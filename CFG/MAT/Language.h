@@ -17,7 +17,7 @@ class Language
 public:
     static const string lambda; // empty string
 
-    Language(Alphabet& alphabet);
+    Language();
     ~Language();
 
     Alphabet& getAlphabet();

@@ -11,7 +11,8 @@ ContextFreeGrammar::~ContextFreeGrammar()
 NonTerminal ContextFreeGrammar::getStartSymbol()
 {
     string numberPart = this->_startSymbolIncrement == 0 ? "" :
-        to_string(this->_startSymbolIncrement++);
+        to_string(this->_startSymbolIncrement);
+    this->_startSymbolIncrement++;
     return NonTerminal(this->_startSymbol + numberPart);
 }
 
@@ -40,7 +41,7 @@ bool ContextFreeGrammar::generates(const string w)
 
     // Check terminals
     for (Production production : this->P) {
-        if (production.second->equals(terminal)) {
+        if (production.right.equals(terminal)) {
             return true;
         }
     }
@@ -77,9 +78,9 @@ bool ContextFreeGrammar::cykYields(const NonTerminal& nonTerminal, const string 
         s = w.substr(i, 1);
 
         for (Production production : this->P) {
-            if (production.second->equals(Terminal(s))) {
+            if (production.right.equals(Terminal(s))) {
                 exists = true;
-                M[i][i].insert(production.first);
+                M[i][i].insert(production.left);
             }
         }
         if (!exists) { // Character not found
@@ -100,16 +101,16 @@ bool ContextFreeGrammar::cykYields(const NonTerminal& nonTerminal, const string 
                         NonTerminalNonTerminal nTnT(make_pair(B, C));
 
                         for (Production production : this->P) {
-                            if (production.second->equals(nTnT)) {
-                                M[r][r + l].insert(production.first);
+                            if (production.right.equals(nTnT)) {
+                                M[r][r + l].insert(production.left);
 
                                 // Save the derivation
-                                if (r == 0 && r + l == length - 1 && production.first.equals(nonTerminal)) {
+                                if (r == 0 && r + l == length - 1 && production.left.equals(nonTerminal)) {
                                     string sL = w.substr(r, r + t - (r)+1);
                                     string sR = w.substr(r + t + 1, r + l - (r + t + 1) + 1);
 
                                     this->_derivations.find(w)->second.insert(
-                                        make_pair(make_pair(production.first, make_pair(B, C)),
+                                        make_pair(make_pair(production.left, make_pair(B, C)),
                                         make_pair(sL, sR)));
                                 }
                             }

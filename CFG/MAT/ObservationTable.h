@@ -50,13 +50,6 @@ public:
     ContextFreeGrammar LearnCFG();
 
     /*
-     * Equivalence Oracle
-     * It is implemented here and not in Minimally Adequate Teacher because,
-     *     in order to prevent overgeneration, we need information from the observation table
-     */
-    bool Equiv(ContextFreeGrammar& G);
-
-    /*
      * Compute the Cartesian product K x K and save it in KK
      */
     void computeKK();
@@ -125,8 +118,6 @@ public:
 
 private:
     MinimallyAdequateTeacher& _mat;
-    string _counterExample;
-    bool _counterExampleIsUndergeneration;
     Alphabet& _alphabet;
     const string _lambda;
     Table _table;
@@ -156,4 +147,10 @@ private:
      */
     pair<string, string> _getStringPair(ContextFreeGrammar& G,
         NonTerminal Y, NonTerminal Z, NonTerminal X);
+
+    /*
+     * Returns the split alternatives
+     * e.g. for s = x+y it returns pairs (x, +y) and (x+, y)
+     */
+    set<pair<string, string>> _getSplitAlternatives(string s);
 };

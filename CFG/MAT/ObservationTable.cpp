@@ -15,69 +15,19 @@ ContextFreeGrammar ObservationTable::LearnCFG()
     while (true) {
         ContextFreeGrammar G = this->MakeGrammar();
 
-        if (this->Equiv(G)) {
+        if (this->_mat.Equiv(G)) {
             return G;
         }
-        string w = this->_counterExample;
 
-        // Query the current language L(G)
-        if (this->_counterExampleIsUndergeneration) { // Not found -> w is not in L(G)
+        pair<string, bool> counterExample = this->_mat.getCounterExample();
+        string w = counterExample.first;
+
+        if (counterExample.second) { // Not found -> w is not in L(G)
             this->addPositiveCounterExample(w);
         } else {
             this->AddContexts(G, w);
         }
     }
-}
-
-bool ObservationTable::Equiv(ContextFreeGrammar& G)
-{
-    this->_counterExample = "";
-    this->_counterExampleIsUndergeneration = NULL;
-
-    // The learner provides the teacher with a hypothesis, and
-    //     the teacher will either confirm that it is correct, or
-    //     it will provide the learner with a counter - example
-
-    // Check if all of the strings in L can be generated with the grammar G (prevent undergeneration)
-    for (string s : this->_mat.getLanguage().getData()) {
-        if (!G.generates(s)) {
-            this->_counterExample = s;
-            this->_counterExampleIsUndergeneration = true;
-            return false;
-        }
-    }
-
-    // Check if grammar G does not generate more strings than L has (prevent overgeneration)
-
-    // If the partition of KK into classes is correct, then we will not overgeneralise
-    // If we overgeneralise, then there must be two strings w1, w2 in KK that appear to be congruent but are not
-    //     so we need to add a feature/context to have a more fine division into classes
-    //     so that the two string w1 and w2 are in different classes
-
-    for (ContextFreeGrammar::EquivalenceClass equivalenceClass : G.equivalenceClasses) {
-        for (string u : equivalenceClass.second) {
-            for (string v : equivalenceClass.second) {
-                if (u == v) {
-                    continue;
-                }
-
-                // We already know that the strings are equivalent
-
-                // Try to find a context (l, r) with l, r in Sigma such that lur in L and lvr not in L
-                for (string l : this->_alphabet.get()) {
-                    for (string r : this->_alphabet.get()) {
-                        if (this->_mat.Mem(l, u, r) && !this->_mat.Mem(l, v, r)) {
-                            this->_counterExample = l + v + r;
-                            this->_counterExampleIsUndergeneration = false;
-                            return false;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    return true;
 }
 
 void ObservationTable::computeKK()
@@ -199,7 +149,8 @@ ContextFreeGrammar ObservationTable::MakeGrammar()
             distributionNonTerminal.insert({ equivalenceClassK.first, nonTerminal });
 
             if (w == this->_lambda || this->_alphabet.in(w)) { // terminal or lambda
-                G.P.insert({ nonTerminal, new Terminal(w) });
+                Production p(nonTerminal, new Terminal(w));
+                G.P.insert(p);
                 G.Sigma.insert(Terminal(w));
                 lexicalRulesData.insert({ w, nonTerminal });
                 continue;
@@ -214,22 +165,56 @@ ContextFreeGrammar ObservationTable::MakeGrammar()
     if (binaryRulesData.size() > 0) {
         for (pair<NonTerminal, string> binaryRuleData : binaryRulesData) {
             string s = binaryRuleData.second;
-            string s1 = s.substr(0, 1);
-            string s2 = s.substr(1, 1);
+            set<pair<string, string>> alternatives = this->_getSplitAlternatives(s);
+            bool viableSplitFound = false;
 
-            map<string, NonTerminal>::iterator elementL1 = lexicalRulesData.find(s1);
-            map<string, NonTerminal>::iterator elementL2 = lexicalRulesData.find(s2);
-            if (elementL1 == lexicalRulesData.end() || elementL2 == lexicalRulesData.end()) {
-                string message = "Lexical rule data not found for strings '" + s1 +
-                    "' and/or '" + s2 + "'";
-                throw exception(message.c_str());
-                continue;
+            for (pair<string, string> alternative : alternatives) {
+                string s1 = alternative.first;
+                string s2 = alternative.second;
+
+                map<string, NonTerminal>::iterator elementL1 = lexicalRulesData.find(s1);
+                map<string, NonTerminal>::iterator elementL2 = lexicalRulesData.find(s2);
+
+                if (elementL1 != lexicalRulesData.end() && elementL2 != lexicalRulesData.end()) { // Both found
+                    NonTerminalNonTerminal* nTnT = new NonTerminalNonTerminal(
+                        make_pair(elementL1->second, elementL2->second));
+                    G.P.insert(Production(binaryRuleData.first, nTnT));
+                    lexicalRulesData.insert({ binaryRuleData.second, binaryRuleData.first });
+                    viableSplitFound = true;
+                    break;
+                }
             }
-            NonTerminalNonTerminal* nTnT = new NonTerminalNonTerminal(
-                make_pair(elementL1->second, elementL2->second));
-            G.P.insert(make_pair(binaryRuleData.first, nTnT));
 
-            lexicalRulesData.insert({ binaryRuleData.second, binaryRuleData.first });
+            // If no viable split was found, take the first one and create what you need
+            if (!viableSplitFound) {
+                for (pair<string, string> alternative : alternatives) {
+                    string s1 = alternative.first;
+                    string s2 = alternative.second;
+
+                    map<string, NonTerminal>::iterator elementL1 = lexicalRulesData.find(s1);
+                    NonTerminal nt1 = (elementL1 != lexicalRulesData.end()) ? elementL1->second : G.getNonTerminalSymbol();
+                    if (G.V.find(nt1) == G.V.end()) { // Not found
+                        G.Sigma.insert(Terminal(s1));
+                        G.P.insert(Production(nt1, new Terminal(s1)));
+                        lexicalRulesData.insert({ s1, nt1 });
+                    }
+
+                    map<string, NonTerminal>::iterator elementL2 = lexicalRulesData.find(s2);
+                    NonTerminal nt2 = (elementL2 != lexicalRulesData.end()) ? elementL2->second : G.getNonTerminalSymbol();
+                    if (G.V.find(nt2) == G.V.end()) { // Not found
+                        G.Sigma.insert(Terminal(s2));
+                        G.P.insert(Production(nt2, new Terminal(s2)));
+                        lexicalRulesData.insert({ s2, nt2 });
+                    }
+
+                    NonTerminalNonTerminal* nTnT = new NonTerminalNonTerminal(make_pair(nt1, nt2));
+                    G.P.insert(Production(binaryRuleData.first, nTnT));
+                    lexicalRulesData.insert({ binaryRuleData.second, binaryRuleData.first });
+
+                    break;
+                }
+            }
+
         }
     }
 
@@ -264,7 +249,7 @@ ContextFreeGrammar ObservationTable::MakeGrammar()
 
             NonTerminalNonTerminal* nTnT = new NonTerminalNonTerminal(
                 make_pair(elementK1->second, elementK2->second));
-            G.P.insert({ nonTerminal, nTnT });
+            G.P.insert(Production(nonTerminal, nTnT));
         }
     }
 
@@ -475,4 +460,27 @@ pair<string, string> ObservationTable::_getStringPair(ContextFreeGrammar& G,
     }
 
     throw exception(message.c_str());
+}
+
+set<pair<string, string>> ObservationTable::_getSplitAlternatives(string s)
+{
+    set<pair<string, string>> alternatives;
+    size_t length = s.length();
+    size_t len = 1; // first substring length
+    string l, r;
+
+    if (length < 2) {
+        string message = "String '" + s + "' has las than 2 characters";
+        throw exception(message.c_str());
+    }
+
+    while (len < length) {
+        l = s.substr(0, len);
+        r = s.substr(len);
+
+        alternatives.insert(make_pair(l, r));
+        len++;
+    }
+
+    return alternatives;
 }

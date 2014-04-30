@@ -20,6 +20,7 @@
 
 #include "Terminal.h"
 #include "NonTerminal.h"
+#include "Production.h"
 #include "NonTerminalNonTerminal.h"
 #include "ProductionRight.h"
 
@@ -28,8 +29,6 @@ using namespace std;
 class ContextFreeGrammar
 {
 public:
-    typedef pair<NonTerminal, ProductionRight*> Production; // pair(left, right)
-
     typedef pair<pair<NonTerminal, NonTerminalNonTerminal>,
         pair<string, string>> Derivation; // pair(production, pair(left substring, right substring))
     typedef map<string, set<Derivation>> Derivations;
