@@ -33,19 +33,10 @@ bool ObservationTable::Equiv(ContextFreeGrammar& G)
 {
     this->_counterExample = "";
     this->_counterExampleIsUndergeneration = NULL;
+
     // The learner provides the teacher with a hypothesis, and
     //     the teacher will either confirm that it is correct, or
     //     it will provide the learner with a counter - example
-
-    /* Info:
-    We have implemented the algorithm using a sampling approximation to the equivalence oracle.
-    More generally,
-    one can approximate the equivalence oracle by generating examples from a
-    fixed distribution or from both target and hypothesis grammars, either using a
-    probabilistic CFG or otherwise[15].
-
-    [2] Dana Angluin, "Learning regular sets from queries and counterexamples".
-    */
 
     // Check if all of the strings in L can be generated with the grammar G (prevent undergeneration)
     for (string s : this->_mat.getLanguage().getData()) {
@@ -59,8 +50,6 @@ bool ObservationTable::Equiv(ContextFreeGrammar& G)
     // Check if grammar G does not generate more strings than L has (prevent overgeneration)
 
     // If the partition of KK into classes is correct, then we will not overgeneralise
-    // If for any u, v in KK, we have that u equivalent with v implies that u congruent with v,
-    //     then we will not overgeneralise
     // If we overgeneralise, then there must be two strings w1, w2 in KK that appear to be congruent but are not
     //     so we need to add a feature/context to have a more fine division into classes
     //     so that the two string w1 and w2 are in different classes
@@ -73,14 +62,16 @@ bool ObservationTable::Equiv(ContextFreeGrammar& G)
                 }
 
                 // We already know that the strings are equivalent
-                //TODO how the fuck should you check if the strings are congruent?
-                // assuming you have the following strings in L: {ab, abab, aabb}
 
-                if (!this->congruent(u, v)) {
-                    //TODO generate counter example for overgeneration
-                    this->_counterExample = "aab";
-                    this->_counterExampleIsUndergeneration = false;
-                    return false;
+                // Try to find a context (l, r) with l, r in Sigma such that lur in L and lvr not in L
+                for (string l : this->_alphabet.get()) {
+                    for (string r : this->_alphabet.get()) {
+                        if (this->_mat.Mem(l, u, r) && !this->_mat.Mem(l, v, r)) {
+                            this->_counterExample = l + v + r;
+                            this->_counterExampleIsUndergeneration = false;
+                            return false;
+                        }
+                    }
                 }
             }
         }
@@ -126,12 +117,6 @@ bool ObservationTable::equivalent(const string u, const string v)
         }
     }
     return true;
-}
-
-bool ObservationTable::congruent(const string u, const string v)
-{
-    // Two strings are congruent if and only if they have the same distribution over L
-    return this->_getDistribution(u) == this->_getDistribution(v);
 }
 
 void ObservationTable::MakeConsistent()
@@ -401,25 +386,6 @@ void ObservationTable::_addContext(Context f)
     for (string k : this->KK) {
         this->insert(f, k);
     }
-}
-
-ObservationTable::ContextSet ObservationTable::_getDistribution(const string w)
-{
-    ContextSet distribution;
-    string prefix, suffix;
-    size_t found;
-    size_t length = w.size();
-
-    for (string s : this->_mat.getLanguage().getData()) {
-        found = s.find(w);
-        while (found != string::npos) {
-            prefix = s.substr(0, found);
-            suffix = s.substr(found + length);
-            distribution.insert(make_pair(prefix, suffix));
-            found = s.find(w, found + 1);
-        }
-    }
-    return distribution;
 }
 
 ObservationTable::ContextSet ObservationTable::_getDistributionByK(const string k)

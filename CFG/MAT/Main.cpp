@@ -11,6 +11,7 @@ int main()
 {
     // Build alphabet Sigma, which is known
     Alphabet alphabet;
+    alphabet.insert(""); // lambda
     alphabet.insert("a");
     alphabet.insert("b");
 
@@ -19,6 +20,7 @@ int main()
     // language.addSample("ab");
     // language.addSample("abab");
     // language.addSample("aabb");
+    // language.addSample("aababb");
 
     try {
         language.addSampleFromFile("D://Master Thesis//Sources//Thesis Cpp//CFG//samples//sample0.txt");

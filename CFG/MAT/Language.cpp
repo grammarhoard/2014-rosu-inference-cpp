@@ -111,7 +111,6 @@ bool Language::isDirectory(const string & fileName)
 
 bool Language::in(const string element)
 {
-    //TODO maybe: Investigate if you also need to look for substrings
     for (string s : this->_data) {
         if (s == element) { // Found
             return true;

@@ -18,8 +18,7 @@ public:
     /*
      * Get all elements of the alphabet
      */
-    //TODO maybe: Check if you can remove Alphabet::get() method (now it is used in Learner::LearnCFG())
-    // set<string> get();
+    set<string>& get();
 
     /*
      * Returns true if the specified element is in the alphabet,

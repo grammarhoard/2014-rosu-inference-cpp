@@ -78,12 +78,6 @@ public:
     bool equivalent(const string u, const string v);
 
     /*
-     * Returns true if they have the same distribution over L,
-     *     and false otherwise
-     */
-    bool congruent(const string u, const string v);
-
-    /*
      * Algorithm 1
      * Selects appropriate contexts to make sure that the table is consistent
      */
@@ -141,11 +135,6 @@ private:
      * Add Context f, increase D and fill in the observation table
      */
     void _addContext(Context f);
-
-    /*
-     * Get the set of all contexts of a string w over L
-     */
-    ContextSet _getDistribution(const string w);
 
     /*
      * Get the set of all contexts of a string k, such that lkr in L
