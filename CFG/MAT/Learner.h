@@ -13,7 +13,7 @@
 class Learner
 {
 public:
-    Learner(MinimallyAdequateTeacher& mat);
+    Learner(MinimallyAdequateTeacher& mat, const string outputLocation, const string outputPrefix);
     ~Learner();
 
     /*
@@ -29,4 +29,6 @@ public:
 
 private:
     MinimallyAdequateTeacher& _mat;
+    const string _outputLocation;
+    const string _outputPrefix;
 };

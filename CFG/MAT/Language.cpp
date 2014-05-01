@@ -40,8 +40,8 @@ void Language::addSample(string sample)
         this->_Sigma.insert(s);
     }
 
-    // Add string to data
-    if (find(this->_data.begin(), this->_data.end(), sample) == this->_data.end()) { // Not found
+    // Add string to data if is not already there
+    if (find(this->_data.begin(), this->_data.end(), sample) == this->_data.end()) {
         this->_data.push_back(sample);
     }
 }
@@ -98,7 +98,7 @@ FILE * Language::getFilePointer(const string & fileName)
     strerror_s(buffer, _MAXSTRING, errorNo);
 
     char message[_MAXSTRING];
-    sprintf_s(message, _MAXSTRING, "Error opening file '%s': %s\n", fileName.c_str(), buffer);
+    sprintf_s(message, _MAXSTRING, "Error opening file '%s': %s", fileName.c_str(), buffer);
     throw exception(message);
 }
 
@@ -107,7 +107,7 @@ bool Language::isDirectory(const string & fileName)
     DWORD fileDword = GetFileAttributesA(fileName.c_str());
     if (fileDword == INVALID_FILE_ATTRIBUTES) {
         char message[_MAXSTRING];
-        sprintf_s(message, _MAXSTRING, "Invalid file path: %s\n", fileName.c_str());
+        sprintf_s(message, _MAXSTRING, "Invalid file path: %s", fileName.c_str());
         throw exception(message);
     }
 
@@ -126,6 +126,5 @@ bool Language::in(const string element)
         }
     }
 
-    // Not in the language
     return false;
 }

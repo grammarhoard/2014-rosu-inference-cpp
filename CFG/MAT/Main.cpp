@@ -18,7 +18,7 @@ int main()
         MinimallyAdequateTeacher mat(language);
 
         // Learn the grammar
-        Learner learner(mat);
+        Learner learner(mat, "D://Master Thesis//Documentation//Thesis LaTeX//Chapters//ContextFreeGrammars//", "Sample1");
         ContextFreeGrammar grammar = learner.LearnCFG();
 
         return 0;

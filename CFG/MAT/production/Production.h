@@ -17,4 +17,3 @@ public:
      */
     bool operator < (const Production& production) const;
 };
-

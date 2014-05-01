@@ -24,7 +24,7 @@ public:
     vector<string>& getData();
 
     void addSample(string sample);
-    void addSampleFromFile(const string& fileName); // fileName can be a directory or a file
+    void addSampleFromFile(const string & fileName); // fileName can be a directory or a file
     void addSampleFromDirectory(const string & fileName); // fileName needs to be a directory
     FILE * getFilePointer(const string & fileName);
     bool isDirectory(const string & fileName);

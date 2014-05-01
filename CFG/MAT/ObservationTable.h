@@ -12,6 +12,7 @@
 #include <set>
 #include <map>
 #include <utility>
+#include <fstream>
 
 #include "MinimallyAdequateTeacher.h"
 #include "ContextFreeGrammar.h"
@@ -37,17 +38,11 @@ public:
     typedef map<ContextSet, StringSet> EquivalenceClasses; // map(distribution: set of strings)
 
     StringSet  K;  // non-empty finite set of strings
-    StringSet  KK; // the Cartesian product between K and itself (K x K)
     ContextSet F;  // non-empty finite set of contexts
     StringSet  D;  // in the finite function mapping F \odot KK to {0, 1}
 
     ObservationTable(MinimallyAdequateTeacher& mat);
     ~ObservationTable();
-
-    /*
-     * Learn the Context Free Grammar and returns it
-     */
-    ContextFreeGrammar LearnCFG();
 
     /*
      * Compute the Cartesian product K x K and save it in KK
@@ -116,10 +111,19 @@ public:
      */
     void AddContexts(ContextFreeGrammar& G, const string w);
 
+    /*
+     * Save the observation table to a LaTeX file
+     */
+    void saveToLaTeX(const string fileName, const string prefix, const int step);
+    string getLaTeXString(const string s);
+    string getLaTeXString(const bool b);
+    string getLaTeXString(const int i);
+
 private:
     MinimallyAdequateTeacher& _mat;
     Alphabet& _alphabet;
     const string _lambda;
+    StringSet _KK; // the Cartesian product between K and itself (K x K)
     Table _table;
 
     /*
@@ -134,13 +138,9 @@ private:
 
     /*
      * Returns the equivalence classes of K under \odot F
+     *     if the parameter is false, it will return the equivalence classes of KK
      */
-    EquivalenceClasses _getEquivalenceClassesK();
-
-    /*
-     * Returns the equivalence classes of KK under \odot F
-     */
-    EquivalenceClasses _getEquivalenceClassesKK();
+    EquivalenceClasses _getEquivalenceClasses(bool ofK = true);
 
     /*
      * Returns a pair of strings u', v' in K such that u' in Y, v' in Z and u'v' in X
@@ -149,8 +149,23 @@ private:
         NonTerminal Y, NonTerminal Z, NonTerminal X);
 
     /*
-     * Returns the split alternatives
-     * e.g. for s = x+y it returns pairs (x, +y) and (x+, y)
+     * Build lexical rules and populate the maps in the parameters
+     * binaryRulesData (non-terminal: a string that needs to be processed)
+     * distributionNonTerminal (relation between a distribution and a non-terminal)
      */
-    set<pair<string, string>> _getSplitAlternatives(string s);
+    void _buildLexicalRules(ContextFreeGrammar& G,
+        map<NonTerminal, string>& binaryRulesData,
+        map<ContextSet, NonTerminal>& distributionNonTerminal);
+
+    /*
+     * Build the binary rules from the map binaryRulesData (populated by the _buildLexicalRules)
+     */
+    void _buildBinaryRules(ContextFreeGrammar& G,
+        map<NonTerminal, string>& binaryRulesData);
+
+    /*
+     * Build the binary rules from K
+     */
+    void _buildBinaryRulesFromK(ContextFreeGrammar& G,
+        map<ContextSet, NonTerminal>& distributionNonTerminal);
 };

@@ -23,8 +23,8 @@ bool MinimallyAdequateTeacher::Equiv(ContextFreeGrammar& G)
     // The learner provides the teacher with a hypothesis, and
     //     the teacher will either confirm that it is correct, or
     //     it will provide the learner with a counter-example
-    this->_counterExample = make_pair("", false);
 
+    this->_counterExample = make_pair("", false);
     return this->_checkUndergeneration(G) && this->_checkOvergeneration(G);
 }
 
@@ -47,12 +47,13 @@ bool MinimallyAdequateTeacher::_checkUndergeneration(ContextFreeGrammar& G)
 bool MinimallyAdequateTeacher::_checkOvergeneration(ContextFreeGrammar& G)
 {
     // If the partition of KK into classes is correct, then we will not overgeneralise
-    // If we overgeneralise, then there must be two strings w1, w2 in KK that appear to be congruent but are not
+    // If we overgeneralise, then there must be two strings w1, w2 in KK that
+    //     appear to be congruent but are not
     //     so we need to add a feature/context to have a more fine division into classes
     //     so that the two string w1 and w2 are in different classes
     set<string>& alphabet = this->_L.getAlphabet().get();
 
-    for (ContextFreeGrammar::EquivalenceClass equivalenceClass : G.equivalenceClasses) {
+    for (ContextFreeGrammar::EquivalenceClass equivalenceClass : G.getEquivalenceClasses()) {
         for (string u : equivalenceClass.second) {
             for (string v : equivalenceClass.second) {
                 if (u == v) {
@@ -60,7 +61,7 @@ bool MinimallyAdequateTeacher::_checkOvergeneration(ContextFreeGrammar& G)
                 }
 
                 // We already know that the strings are equivalent
-                // Look for a context (l, r) with l, r in Sigma such that lur in L and lvr not in L
+                // Look for a context f with l, r in Sigma such that lur in L and lvr not in L
                 for (string l : alphabet) {
                     for (string r : alphabet) {
                         if (this->Mem(l, u, r) && !this->Mem(l, v, r)) {
@@ -69,7 +70,8 @@ bool MinimallyAdequateTeacher::_checkOvergeneration(ContextFreeGrammar& G)
                         }
                     }
                 }
-            }
+
+            } // end for(string v ...)
         }
     }
 

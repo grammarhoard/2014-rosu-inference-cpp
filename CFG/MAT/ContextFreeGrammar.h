@@ -29,18 +29,18 @@ using namespace std;
 class ContextFreeGrammar
 {
 public:
-    typedef pair<pair<NonTerminal, NonTerminalNonTerminal>,
-        pair<string, string>> Derivation; // pair(production, pair(left substring, right substring))
+    typedef pair<pair<NonTerminal, NonTerminalNonTerminal>, // production of the form N -> PQ
+        pair<string, string>> Derivation; // (left substring, right substring)
     typedef map<string, set<Derivation>> Derivations;
 
     typedef pair<NonTerminal, set<string>> EquivalenceClass;
     typedef map<NonTerminal, set<string>> EquivalenceClasses;
+    typedef map<string, NonTerminal> LexicalRules; // string, non-terminal
 
     set<Terminal>    Sigma; // finite non-empty alphabet of terminal symbols
     set<NonTerminal> V;     // set of non terminals
     set<Production>  P;     // set of productions
     set<NonTerminal> I;     // set of initial symbols
-    EquivalenceClasses equivalenceClasses; // map(non-terminal, equivalence class)
 
     ContextFreeGrammar();
     ~ContextFreeGrammar();
@@ -72,9 +72,17 @@ public:
     bool cykYields(const NonTerminal& nonTerminal, const string w);
 
     /*
-     * Get the derivations found by last cykYields(X, w) run
+     * Get the derivations found by last call of cykYields(X, w)
      */
     set<Derivation> getDerivationsByString(const string w);
+
+    /*
+     * Get a non-terminal non-terminal pair for string s
+     */
+    NonTerminalNonTerminal* getNonTerminalPairForString(const string s);
+
+    EquivalenceClasses& getEquivalenceClasses();
+    LexicalRules& getLexicalRules();
 
 private:
     const string _startSymbol        = "S";
@@ -84,4 +92,25 @@ private:
     unsigned _currentSymbolIncrement = 0;
 
     Derivations _derivations;
+    EquivalenceClasses _equivalenceClasses; // map(non-terminal, equivalence class)
+    LexicalRules _lexicalRules;
+
+    void _clearOldDerivations(const string w);
+
+    /*
+     * Populate CYK's vector M with non-terminals
+     */
+    void _cykPopulateMwithNonTerminals(const NonTerminal& nonTerminal, const string w,
+        vector<vector<set<NonTerminal>>>& M, const size_t l, const size_t r, const size_t t);
+
+    /*
+     * Returns the split alternatives
+     * e.g. for s = x+y it returns pairs (x, +y) and (x+, y)
+     */
+    set<pair<string, string>> _getSplitAlternatives(const string s);
+
+    /*
+     * Get a non-terminal by string (create it if no match found)
+     */
+    NonTerminal _getNonTerminalByString(const string s);
 };
