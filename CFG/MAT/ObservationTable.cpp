@@ -89,7 +89,7 @@ ContextFreeGrammar ObservationTable::MakeGrammar()
     this->MakeConsistent();
 
     ContextFreeGrammar G;
-    map<NonTerminal, string> binaryRulesData;  // map(non-terminal: string w)
+    map<NonTerminal, StringSet> binaryRulesData;  // map(non-terminal: string w)
     map<ContextSet, NonTerminal> distributionNonTerminal; // map(distribution: non-terminal)
 
     // Build the grammar
@@ -205,7 +205,7 @@ void ObservationTable::AddContexts(ContextFreeGrammar& G, const string w)
 
 void ObservationTable::saveToLaTeX(const string fileName, const string prefix, const int step)
 {
-    string fullFileName = fileName + prefix + "_Step" + to_string(step) + ".tex";
+    string fullFileName = fileName + prefix + "_ObservationTable_Step" + to_string(step) + ".tex";
     ofstream myfile(fullFileName); bool hasKK = false;
     if (!myfile.is_open()) {
         string message = "File '" + fullFileName + "' could not be opened";
@@ -256,7 +256,7 @@ void ObservationTable::saveToLaTeX(const string fileName, const string prefix, c
     myfile << endl
         << "\\end{tabularx}" << endl
         << "\\caption{Step " << step << "}" << endl
-        << "\\label{table:" << prefix << "_step" << this->getLaTeXString(step) << "}" << endl
+        << "\\label{table:ObservationTable" << prefix << "_step" << step << "}" << endl
     //    << endl
     //    << "\\caption{" << prefix << " Step " << step << "}" << endl
     //    << "\\label{table:" << prefix << "_step" << this->getLaTeXString(step) << "}" << endl
@@ -275,24 +275,6 @@ string ObservationTable::getLaTeXString(const string s)
 string ObservationTable::getLaTeXString(const bool b)
 {
     return b ? "1" : "0";
-}
-
-string ObservationTable::getLaTeXString(const int i)
-{
-    switch (i){
-    case 0: return "Zero";
-    case 1: return "One";
-    case 2: return "Two";
-    case 3: return "Three";
-    case 4: return "Four";
-    case 5: return "Five";
-    case 6: return "Six";
-    case 7: return "Seven";
-    case 8: return "Eight";
-    case 9: return "Nine";
-    case 10: return "Ten";
-    default: return to_string(i);
-    }
 }
 
 void ObservationTable::_addContext(Context f)
@@ -376,7 +358,7 @@ pair<string, string> ObservationTable::_getStringPair(ContextFreeGrammar& G,
 }
 
 void ObservationTable::_buildLexicalRules(ContextFreeGrammar& G,
-    map<NonTerminal, string>& binaryRulesData,
+    map<NonTerminal, StringSet>& binaryRulesData,
     map<ContextSet, NonTerminal>& distributionNonTerminal)
 {
     EquivalenceClasses equivalenceClassesK = this->_getEquivalenceClasses();
@@ -384,6 +366,12 @@ void ObservationTable::_buildLexicalRules(ContextFreeGrammar& G,
 
     // Let V be the set of these equivalence classes - set of non terminals
     for (EquivalenceClass equivalenceClassK : equivalenceClassesK) {
+        //TODO-TWEAK: Figure out why it works only for simple sample 1, 2, 3
+        /*
+        if (equivalenceClassK.first.size() == 0) {
+            continue;
+        }
+        */
 
         // Check if this equivalence class can generate a start symbol
         bool isStart = true;
@@ -421,20 +409,26 @@ void ObservationTable::_buildLexicalRules(ContextFreeGrammar& G,
             }
 
             // Remember the strings that will become binary rules
-            binaryRulesData.insert({ nonTerminal, w });
+            auto binaryRuleData = binaryRulesData.find(nonTerminal);
+            if (binaryRuleData != binaryRulesData.end()) {
+                binaryRuleData->second.insert(w);
+            } else {
+                binaryRulesData.insert({ nonTerminal, { w } });
+            }
         }
     }
 }
 
 void ObservationTable::_buildBinaryRules(ContextFreeGrammar& G,
-    map<NonTerminal, string>& binaryRulesData)
+    map<NonTerminal, StringSet>& binaryRulesData)
 {
     string s;
-    for (pair<NonTerminal, string> binaryRuleData : binaryRulesData) {
-        s = binaryRuleData.second;
-        NonTerminalNonTerminal* nTnT = G.getNonTerminalPairForString(s);
-        G.P.insert(Production(binaryRuleData.first, nTnT));
-        G.getLexicalRules().insert({ binaryRuleData.second, binaryRuleData.first });
+    for (pair<NonTerminal, StringSet> binaryRuleData : binaryRulesData) {
+        for (string s : binaryRuleData.second) {
+            NonTerminalNonTerminal* nTnT = G.getNonTerminalPairForString(s);
+            G.P.insert(Production(binaryRuleData.first, nTnT));
+            G.getLexicalRules().insert({ s, binaryRuleData.first });
+        }
     }
 }
 
@@ -473,4 +467,5 @@ void ObservationTable::_buildBinaryRulesFromK(ContextFreeGrammar& G,
             G.P.insert(Production(nonTerminalPair->second, nTnT));
         }
     }
+
 }

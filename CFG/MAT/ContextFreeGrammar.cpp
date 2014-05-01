@@ -154,6 +154,83 @@ ContextFreeGrammar::LexicalRules& ContextFreeGrammar::getLexicalRules()
     return this->_lexicalRules;
 }
 
+void ContextFreeGrammar::saveToLaTeX(const string fileName, const string prefix, const int step)
+{
+    string fullFileName = fileName + prefix + "_CFG_Step" + to_string(step) + ".tex";
+    ofstream myfile(fullFileName); bool hasKK = false;
+    if (!myfile.is_open()) {
+        string message = "File '" + fullFileName + "' could not be opened";
+        throw exception(message.c_str());
+    }
+
+    size_t i;
+    size_t SigmaSize = this->Sigma.size();
+    size_t VSize = this->V.size();
+    size_t ISize = this->I.size();
+    size_t PSize = this->P.size();
+
+    // Sigma (terminals)
+    myfile << "\\textbf{$\\Sigma$} = $\\{";
+    i = 0;
+    for (Terminal terminal: this->Sigma) {
+        myfile << this->getLaTeXString(terminal.getName());
+        if (i != SigmaSize - 1) {
+            myfile << ", ";
+        }
+        i++;
+    }
+    myfile << "\\}$" << endl << endl;
+
+    // V (non-terminals)
+    myfile << "\\textbf{$V$} = $\\{";
+    i = 0;
+    for (NonTerminal nonTerminal: this->V) {
+        myfile << this->getLaTeXString(nonTerminal.getName());
+        if (i != VSize- 1) {
+            myfile << ", ";
+        }
+        i++;
+    }
+    myfile << "\\}$" << endl << endl;
+
+    // I (start symbols)
+    myfile << "\\textbf{$I$} = $\\{";
+    i = 0;
+    for (NonTerminal nonTerminal : this->I) {
+        myfile << this->getLaTeXString(nonTerminal.getName());
+        if (i != ISize - 1) {
+            myfile << ", ";
+        }
+        i++;
+    }
+    myfile << "\\}$" << endl << endl;
+
+    // P (productions)
+    myfile << "\\textbf{$P$} = $\\{$";
+    i = 0;
+    for (Production production: this->P) {
+        myfile << "$" << this->getLaTeXString(production.left.getName())
+            << "\\to\\ " << this->getLaTeXString(production.right.getName()) << "$";
+        if (i != PSize - 1) {
+            myfile << ", ";
+        }
+        i++;
+    }
+    myfile << "$\\}$" << endl << endl;
+
+    myfile << endl
+        << "\\caption{Step " << step << "}" << endl
+        << "\\label{figure:CFG" << prefix << "_step" << step << "}" << endl;
+
+    myfile.close();
+
+}
+
+string ContextFreeGrammar::getLaTeXString(const string s)
+{
+    return s == "" ? "\\lambda" : s;
+}
+
 void ContextFreeGrammar::_clearOldDerivations(const string w)
 {
     auto oldDerivations = this->_derivations.find(w);

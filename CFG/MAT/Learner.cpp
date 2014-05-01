@@ -35,6 +35,7 @@ ContextFreeGrammar Learner::LearnCFG()
 
         // Save to file
         observationTable.saveToLaTeX(this->_outputLocation, this->_outputPrefix, step);
+        G.saveToLaTeX(this->_outputLocation, this->_outputPrefix, step);
 
         if (this->_mat.Equiv(G)) {
             return G;

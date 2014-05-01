@@ -117,7 +117,6 @@ public:
     void saveToLaTeX(const string fileName, const string prefix, const int step);
     string getLaTeXString(const string s);
     string getLaTeXString(const bool b);
-    string getLaTeXString(const int i);
 
 private:
     MinimallyAdequateTeacher& _mat;
@@ -154,14 +153,14 @@ private:
      * distributionNonTerminal (relation between a distribution and a non-terminal)
      */
     void _buildLexicalRules(ContextFreeGrammar& G,
-        map<NonTerminal, string>& binaryRulesData,
+        map<NonTerminal, StringSet>& binaryRulesData,
         map<ContextSet, NonTerminal>& distributionNonTerminal);
 
     /*
      * Build the binary rules from the map binaryRulesData (populated by the _buildLexicalRules)
      */
     void _buildBinaryRules(ContextFreeGrammar& G,
-        map<NonTerminal, string>& binaryRulesData);
+        map<NonTerminal, StringSet>& binaryRulesData);
 
     /*
      * Build the binary rules from K

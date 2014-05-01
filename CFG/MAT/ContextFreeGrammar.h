@@ -17,6 +17,7 @@
 #include <map>
 #include <vector>
 #include <utility>
+#include <fstream>
 
 #include "Terminal.h"
 #include "NonTerminal.h"
@@ -83,6 +84,12 @@ public:
 
     EquivalenceClasses& getEquivalenceClasses();
     LexicalRules& getLexicalRules();
+
+    /*
+     * Save the CFG to a LaTeX file
+     */
+    void saveToLaTeX(const string fileName, const string prefix, const int step);
+    string getLaTeXString(const string s);
 
 private:
     const string _startSymbol        = "S";

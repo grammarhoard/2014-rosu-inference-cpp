@@ -1,25 +1,18 @@
-#include "Alphabet.h"
-#include "Language.h"
-#include "MinimallyAdequateTeacher.h"
-#include "Learner.h"
-#include "ContextFreeGrammar.h"
-
 #include <iostream>
+
+#include "MainHelper.h"
+
 using namespace std;
 
 int main()
 {
+    string outputLocation =
+        "D://Master Thesis//Documentation//Thesis LaTeX//Chapters//ContextFreeGrammars//";
     try {
-        // Setup language L
-        Language language;
-        language.addSampleFromFile("D://Master Thesis//Sources//Thesis Cpp//CFG//samples//sample1.txt");
-
-        // Setup the Minimally Adequate Teacher
-        MinimallyAdequateTeacher mat(language);
-
-        // Learn the grammar
-        Learner learner(mat, "D://Master Thesis//Documentation//Thesis LaTeX//Chapters//ContextFreeGrammars//", "Sample1");
-        ContextFreeGrammar grammar = learner.LearnCFG();
+        MainHelper mainHelper("D://Master Thesis//Sources//Thesis Cpp//CFG//samples//");
+        mainHelper.runSample(1, outputLocation);
+        mainHelper.runSample(2, outputLocation);
+        mainHelper.runSample(3, outputLocation);
 
         return 0;
     } catch(exception exception) {
