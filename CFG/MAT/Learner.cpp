@@ -1,7 +1,8 @@
 #include "Learner.h"
 
-Learner::Learner(MinimallyAdequateTeacher& mat, const string outputLocation, const string outputPrefix) :
-    _mat(mat), _outputLocation(outputLocation), _outputPrefix(outputPrefix)
+Learner::Learner(MinimallyAdequateTeacher& mat, const bool output,
+    const string outputLocation, const string outputPrefix) :
+    _mat(mat), _output(output), _outputLocation(outputLocation), _outputPrefix(outputPrefix)
 {
 }
 
@@ -34,14 +35,20 @@ ContextFreeGrammar Learner::LearnCFG()
         ContextFreeGrammar G = observationTable.MakeGrammar();
 
         // Save to file
-        observationTable.saveToLaTeX(this->_outputLocation, this->_outputPrefix, step);
-        G.saveToLaTeX(this->_outputLocation, this->_outputPrefix, step);
+        if (this->_output) {
+            observationTable.saveToLaTeX(this->_outputLocation, this->_outputPrefix, step);
+            G.saveToLaTeX(this->_outputLocation, this->_outputPrefix, step);
+        }
 
         if (this->_mat.Equiv(G)) {
             return G;
         }
 
         counterExample = this->_mat.getCounterExample();
+        if (w == counterExample.first) {
+            string message = "This counter-example ('" + w + "') is received twice in a row";
+            throw exception(message.c_str());
+        }
         w = counterExample.first;
 
         if (counterExample.second) { // w is not in L(G)

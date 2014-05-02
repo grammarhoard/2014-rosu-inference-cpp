@@ -15,7 +15,7 @@ public:
     MainHelper(const string samplesLocation);
     ~MainHelper();
 
-    void runSample(int sampleNumber, const string outputLocation);
+    void runSample(int sampleNumber, const string outputLocation, const bool output = false);
 
 private:
     const string _samplesLocation;

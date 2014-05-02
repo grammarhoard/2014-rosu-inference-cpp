@@ -40,6 +40,9 @@ void ObservationTable::build()
 
 bool ObservationTable::equivalent(const string u, const string v)
 {
+    if (u == v) {
+        return true;
+    }
     for (Context context : this->F) {
         if (this->_table[u][context] != this->_table[v][context]) {
             return false;
@@ -50,6 +53,7 @@ bool ObservationTable::equivalent(const string u, const string v)
 
 void ObservationTable::MakeConsistent()
 {
+    //TODO ObservationTable::MakeConsistent -> This is the hottest path (do something about it)
     for (Context context : this->F) {
         string l = context.first;
         string r = context.second;
@@ -60,9 +64,10 @@ void ObservationTable::MakeConsistent()
                 for (string v1 : this->K) {
                     for (string v2 : this->K) {
 
-                        if (this->equivalent(u1, u2) && this->equivalent(v1, v2) &&
-                            this->D.find(l + u1 + v1 + r) != this->D.end() && // lu1v1r in D
-                            this->D.find(l + u2 + v2 + r) == this->D.end() // lu2v2r not in D
+                        //TWEAK If we put the two equivalent calls in the end, it is faster
+                        if (this->D.find(l + u1 + v1 + r) != this->D.end() && // lu1v1r in D
+                            this->D.find(l + u2 + v2 + r) == this->D.end() && // lu2v2r not in D
+                            this->equivalent(u1, u2) && this->equivalent(v1, v2)
                         ) {
 
                             // Add context
@@ -156,7 +161,7 @@ ObservationTable::Context ObservationTable::FindContext(ContextFreeGrammar& G,
     string r = f.second;
     set<ContextFreeGrammar::Derivation> derivations = G.getDerivationsByString(w);
 
-    // Let X -> YZ yields uv = w be a derivation of w such that Y yields u and Z yields v
+    // Let X -> YZ yields u+v = w be a derivation of w such that Y yields u and Z yields v
     for (ContextFreeGrammar::Derivation derivation : derivations) {
         string u = derivation.second.first;
         string v = derivation.second.second;
@@ -341,13 +346,13 @@ pair<string, string> ObservationTable::_getStringPair(ContextFreeGrammar& G,
     StringSet& eClassZ = equivalenceClassZ->second;
     StringSet& eClassX = equivalenceClassX->second;
 
-    // Find a pair of strings u', v' in K such that u' in Y, v' in Z and u'v' in X
+    // Find a pair of strings u', v' in K such that u' in Y, v' in Z and u'+v' in X
     for (string u1 : this->K) {
         for (string v1 : this->K) {
 
             if (eClassY.find(u1) != eClassY.end() && // u' in Y
                 eClassZ.find(v1) != eClassZ.end() && // v' in Z
-                eClassX.find(u1 + v1) != eClassX.end() // u'v' in X
+                eClassX.find(u1 + v1) != eClassX.end() // u'+v' in X
             ) {
                 return make_pair(u1, v1);
             }
@@ -366,12 +371,10 @@ void ObservationTable::_buildLexicalRules(ContextFreeGrammar& G,
 
     // Let V be the set of these equivalence classes - set of non terminals
     for (EquivalenceClass equivalenceClassK : equivalenceClassesK) {
-        //TODO-TWEAK: Figure out why it works only for simple sample 1, 2, 3
-        /*
+        //TWEAK Avoid unnecessary processing
         if (equivalenceClassK.first.size() == 0) {
             continue;
         }
-        */
 
         // Check if this equivalence class can generate a start symbol
         bool isStart = true;
@@ -422,7 +425,6 @@ void ObservationTable::_buildLexicalRules(ContextFreeGrammar& G,
 void ObservationTable::_buildBinaryRules(ContextFreeGrammar& G,
     map<NonTerminal, StringSet>& binaryRulesData)
 {
-    string s;
     for (pair<NonTerminal, StringSet> binaryRuleData : binaryRulesData) {
         for (string s : binaryRuleData.second) {
             NonTerminalNonTerminal* nTnT = G.getNonTerminalPairForString(s);

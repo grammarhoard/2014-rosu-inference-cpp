@@ -61,7 +61,7 @@ bool MinimallyAdequateTeacher::_checkOvergeneration(ContextFreeGrammar& G)
                 }
 
                 // We already know that the strings are equivalent
-                // Look for a context f with l, r in Sigma such that lur in L and lvr not in L
+                // Look for a context f with l, r in Sigma such that l+u+r in L and l+v+r not in L
                 for (string l : alphabet) {
                     for (string r : alphabet) {
                         if (this->Mem(l, u, r) && !this->Mem(l, v, r)) {

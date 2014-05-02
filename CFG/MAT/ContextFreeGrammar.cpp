@@ -302,14 +302,23 @@ set<pair<string, string>> ContextFreeGrammar::_getSplitAlternatives(const string
 NonTerminal ContextFreeGrammar::_getNonTerminalByString(const string s)
 {
     map<string, NonTerminal>::iterator element = this->_lexicalRules.find(s);
-    NonTerminal nonTerminal = element != this->_lexicalRules.end() ? element->second :
-        this->getNonTerminalSymbol();
+    if (element != this->_lexicalRules.end()) { // Found
+        return element->second;
+    }
 
-    if (this->V.find(nonTerminal) == this->V.end()) { // Not found
+    NonTerminal nonTerminal = this->getNonTerminalSymbol();
+
+    if (s.size() == 1) {
         this->Sigma.insert(Terminal(s));
         this->P.insert(Production(nonTerminal, new Terminal(s)));
-        this->_lexicalRules.insert({ s, nonTerminal });
+    } else {
+        // Create binary production
+        NonTerminalNonTerminal* nTnT = this->getNonTerminalPairForString(s);
+        this->P.insert(Production(nonTerminal, nTnT));
     }
+
+    this->V.insert(nonTerminal);
+    this->_lexicalRules.insert({ s, nonTerminal });
 
     return nonTerminal;
 }

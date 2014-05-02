@@ -4,7 +4,7 @@
  * We write it as a tuple <K, D, F>, where:
  *    K - a non-empty finite set of strings
  *    F - a non-empty finite set of contexts
- *    D - a set of grammatical strings in F \odot KK (finite function mapping to {false, true})
+ *    D - a set of grammatical strings in the table (finite function mapping to {false, true})
  */
 #pragma once
 
@@ -39,7 +39,7 @@ public:
 
     StringSet  K;  // non-empty finite set of strings
     ContextSet F;  // non-empty finite set of contexts
-    StringSet  D;  // in the finite function mapping F \odot KK to {0, 1}
+    StringSet  D;  // set of grammatical strings
 
     ObservationTable(MinimallyAdequateTeacher& mat);
     ~ObservationTable();
@@ -91,7 +91,7 @@ public:
 
     /*
      * Returns true if context f can split category X
-     *     (there are u, v in X such that lux in L and lvx not in L), and
+     *     (there are u, v in X such that l+u+x in L and l+v+x not in L), and
      *     false otherwise
      */
     bool contextSplitsCategory(ContextFreeGrammar& G,
@@ -131,18 +131,18 @@ private:
     void _addContext(Context f);
 
     /*
-     * Get the set of all contexts of a string k, such that lkr in L
+     * Get the set of all contexts of a string k, such that l+k+r in L
      */
     ContextSet _getDistributionByK(const string k);
 
     /*
-     * Returns the equivalence classes of K under \odot F
+     * Returns the equivalence classes of K under F
      *     if the parameter is false, it will return the equivalence classes of KK
      */
     EquivalenceClasses _getEquivalenceClasses(bool ofK = true);
 
     /*
-     * Returns a pair of strings u', v' in K such that u' in Y, v' in Z and u'v' in X
+     * Returns a pair of strings u', v' in K such that u' in Y, v' in Z and u'+v' in X
      */
     pair<string, string> _getStringPair(ContextFreeGrammar& G,
         NonTerminal Y, NonTerminal Z, NonTerminal X);

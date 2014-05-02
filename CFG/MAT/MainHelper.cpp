@@ -8,7 +8,7 @@ MainHelper::~MainHelper()
 {
 }
 
-void MainHelper::runSample(int sampleNumber, const string outputLocation)
+void MainHelper::runSample(int sampleNumber, const string outputLocation, const bool output)
 {
     // Setup language L
     Language language;
@@ -18,6 +18,6 @@ void MainHelper::runSample(int sampleNumber, const string outputLocation)
     MinimallyAdequateTeacher mat(language);
 
     // Learn the grammar
-    Learner learner(mat, outputLocation, "Sample" + to_string(sampleNumber));
+    Learner learner(mat, output, outputLocation, "Sample" + to_string(sampleNumber));
     ContextFreeGrammar grammar = learner.LearnCFG();
 }
