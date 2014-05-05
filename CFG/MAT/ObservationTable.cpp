@@ -53,37 +53,39 @@ bool ObservationTable::equivalent(const string u, const string v)
 
 void ObservationTable::MakeConsistent()
 {
-    //TODO ObservationTable::MakeConsistent -> This is the hottest path (do something about it)
-    for (Context context : this->F) {
-        string l = context.first;
-        string r = context.second;
+    //TODO maybe: Hottest path is ObservationTable::MakeConsistent
+    string l, r;
+    Context f;
 
-        //TODO maybe: Find a better way to get the four strings (ObservationTable::MakeConsistent)
+    for (Context context : this->F) {
+        l = context.first;
+        r = context.second;
+
         for (string u1 : this->K) {
             for (string u2 : this->K) {
                 for (string v1 : this->K) {
                     for (string v2 : this->K) {
 
-                        //TWEAK If we put the two equivalent calls in the end, it is faster
-                        if (this->D.find(l + u1 + v1 + r) != this->D.end() && // lu1v1r in D
-                            this->D.find(l + u2 + v2 + r) == this->D.end() && // lu2v2r not in D
-                            this->equivalent(u1, u2) && this->equivalent(v1, v2)
-                        ) {
+                        // lu1v1r in D && lu2v2r not in D
+                        if (this->_table[u1 + v1][context] || !this->_table[u2 + v2][context]) {
+                            continue;
+                        }
 
+                        if (this->equivalent(u1, u2) && this->equivalent(v1, v2)) {
                             // Add context
-                            Context f;
                             if (this->_mat.Mem(l, u1 + v2, r)) {
                                 f = make_pair(l, v2 + r);
                             } else {
                                 f = make_pair(l + u1, r);
                             }
                             this->_addContext(f);
+                        }
 
-                        } // end if
                     }
                 }
             }
         } // end for (string u1 ...)
+
     } // end for (Context ...)
 }
 

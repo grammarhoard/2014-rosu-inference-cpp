@@ -220,7 +220,8 @@ void ContextFreeGrammar::saveToLaTeX(const string fileName, const string prefix,
 
     myfile << endl
         << "\\caption{Step " << step << "}" << endl
-        << "\\label{figure:CFG" << prefix << "_step" << step << "}" << endl;
+        << "\\label{figure:CFG" << prefix << "_step" << step << "}" << endl
+    ;
 
     myfile.close();
 

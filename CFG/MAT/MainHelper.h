@@ -5,6 +5,7 @@
 #include "MinimallyAdequateTeacher.h"
 #include "Learner.h"
 #include "ContextFreeGrammar.h"
+#include "easylogging++.h"
 
 using namespace std;
 

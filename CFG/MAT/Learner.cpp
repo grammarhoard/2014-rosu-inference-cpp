@@ -12,6 +12,7 @@ Learner::~Learner()
 
 ContextFreeGrammar Learner::LearnCFG()
 {
+    clock_t time;
     pair<string, bool> counterExample;
     string w;
 
@@ -30,6 +31,9 @@ ContextFreeGrammar Learner::LearnCFG()
         observationTable.D.insert(lambda);
     }
 
+    time = clock();
+    LOG(INFO) << "Finished initialization: " << clock() - time << " ms";
+
     int step = 0;
     while (true) {
         ContextFreeGrammar G = observationTable.MakeGrammar();
@@ -39,6 +43,7 @@ ContextFreeGrammar Learner::LearnCFG()
             observationTable.saveToLaTeX(this->_outputLocation, this->_outputPrefix, step);
             G.saveToLaTeX(this->_outputLocation, this->_outputPrefix, step);
         }
+        LOG(INFO) << "Step " << step << " - " << clock() - time << " ms"; time = clock();
 
         if (this->_mat.Equiv(G)) {
             return G;
